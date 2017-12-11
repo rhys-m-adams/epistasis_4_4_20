@@ -18,6 +18,18 @@ from data_preparation_transformed import get_data, get_f1, cdr1_list, cdr3_list
 from get_fit_PWM_transformation import get_transformations
 from bayesian_lasso_emcee import bayesian_lasso
 import itertools
+import errno
+import os
+
+
+def mkdir(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 logKD2PWM, PWM2logKD = get_transformations()
 med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM)
@@ -453,7 +465,7 @@ KD_use3 = ~np.array(med_rep['KD_exclude'].loc[usethis3])
 
 print '# of triple mutants, CDR1: %i, CDR3:%i'%(np.sum(num_muts1==3),np.sum(num_muts3==3))
 print '# of triple mutants within boundary, CDR1: %i, CDR3:%i'%(np.sum(KD_use1[num_muts1==3]),np.sum(KD_use3[num_muts3==3]))
-
+mkdir('./biochemical_fit')
 try:
     KD_epi_1 = np.array(pandas.read_csv('./biochemical_fit/KD_epi_1.csv',index_col=0))
     KD_average_epi_1= np.array(pandas.read_csv('./biochemical_fit/KD_average_epi_1.csv',index_col=0))
