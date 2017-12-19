@@ -115,17 +115,17 @@ def plot_connected_dm(representative, ax, plot_title, make_colorbar, y_offset):
         single_mut2 = r'%s$_{%i}$'%(representative['AA2'].loc[k],representative['pos2'].loc[k])
         double_mut = single_mut1 + single_mut2
 
-        logKD1 = PWM2logKD(representative['X1'].loc[k] + wt_val)
+        logKD1 = PWM2logKD(representative['h1'].loc[k] + wt_val)
         plot_node(ax,inner_shown_x1[ii],inner_shown_y1[ii],0.95,0.3, logKD1)
         txt = ax.text(inner_shown_x1[ii],inner_shown_y1[ii], single_mut1, zorder=21, ha='center', va='center', color = text_color(logKD1))
         #txt.set_path_effects([PathEffects.withStroke(linewidth=1, foreground='w')])
 
-        logKD2 = PWM2logKD(representative['X2'].loc[k] + wt_val)
+        logKD2 = PWM2logKD(representative['h2'].loc[k] + wt_val)
         plot_node(ax,inner_shown_x2[ii],inner_shown_y2[ii],0.95,0.3,logKD2)
         txt = ax.text(inner_shown_x2[ii],inner_shown_y2[ii],single_mut2, zorder=21, ha='center', va='center', color = text_color(logKD2))
         #txt.set_path_effects([PathEffects.withStroke(linewidth=1, foreground='w')])
 
-        logKD12 = PWM2logKD(representative['f'].loc[k])
+        logKD12 = PWM2logKD(representative['F'].loc[k])
         plot_node(ax,shown_x[ii],shown_y[ii],2.1,0.4, logKD12)
         txt = ax.text(shown_x[ii],shown_y[ii], double_mut, zorder=21, ha='center', va='center', color = text_color(logKD12))
         #txt.set_path_effects([PathEffects.withStroke(linewidth=1, foreground='w')])
@@ -167,26 +167,26 @@ def prepare_X_Z(A, val, val_std, AA, offset):
 
     usethis = np.where((num_muts==2) & np.isfinite(val) & np.isfinite(val_std))[0]
     AA2 = [AA[ind] for ind in usethis]
-    out = pandas.DataFrame({'f':val[usethis], 'f1':f1[usethis], 'f1_std': np.sqrt(f1_var[usethis]), 'f_std':val_std[usethis]}, index=AA2)
+    out = pandas.DataFrame({'F':val[usethis], 'F_PWM':f1[usethis], 'F_PWM_std': np.sqrt(f1_var[usethis]), 'F_std':val_std[usethis]}, index=AA2)
     Z1 = np.array([x[np.array(Arow).flatten()==1]/np.sqrt(x_var[np.array(Arow).flatten()==1]+1e-16) for Arow in np.array(A[usethis].todense())])
     std1 = np.sqrt(np.array([x_var[np.array(Arow).flatten()==1] for Arow in np.array(A[usethis].todense())]))
     X1 = np.array([x[np.array(Arow).flatten()==1] for Arow in np.array(A[usethis].todense())])
     #out['Z'] = (out['f'] - out['f1']) * 1./np.sqrt(out['f1_std']**2 + out['f_std']**2)
     #X2 = np.array(out[['f','f']])
 
-    out['Z_sign1'] = (np.array(out['f']) - (X1[:,1] + wt_val)) * 1./np.sqrt(np.array(out['f_std'])**2 + std1[:,1] + 1e-16)
-    out['Z_sign2'] = (np.array(out['f']) - (X1[:,0] + wt_val)) * 1./np.sqrt(np.array(out['f_std'])**2 + std1[:,0] + 1e-16)
-    out['delta_1'] = (np.array(out['f']) - (X1[:,1] + wt_val))
-    out['delta_2'] = (np.array(out['f']) - (X1[:,0] + wt_val))
-    out['Z_PWM'] = (out['f'] - out['f1']) * 1./np.sqrt(out['f1_std']**2 + out['f_std']**2 + 1e-16)
+    out['Z_sign1'] = (np.array(out['F']) - (X1[:,1] + wt_val)) * 1./np.sqrt(np.array(out['F_std'])**2 + std1[:,1] + 1e-16)
+    out['Z_sign2'] = (np.array(out['F']) - (X1[:,0] + wt_val)) * 1./np.sqrt(np.array(out['F_std'])**2 + std1[:,0] + 1e-16)
+    out['delta_1'] = (np.array(out['F']) - (X1[:,1] + wt_val))
+    out['delta_2'] = (np.array(out['F']) - (X1[:,0] + wt_val))
+    out['Z_PWM'] = (out['F'] - out['F_PWM']) * 1./np.sqrt(out['F_PWM_std']**2 + out['F_std']**2 + 1e-16)
     AA2 = [AA[ind] for ind in usethis]
     double_mut_pos = np.array([np.where([wt!=mut for wt,mut in zip(wt_aa, aa)])[0] for aa in AA2])
     out['Z1'] = Z1[:,0]
     out['Z2'] = Z1[:,1]
-    out['X1'] = X1[:,0]
-    out['X2'] = X1[:,1]
-    out['X1std'] = std1[:,0]
-    out['X2std'] = std1[:,1]
+    out['h1'] = X1[:,0]
+    out['h2'] = X1[:,1]
+    out['h1std'] = std1[:,0]
+    out['h2std'] = std1[:,1]
     out['pos1'] = double_mut_pos[:,0]+offset
     out['pos2'] = double_mut_pos[:,1]+offset
     out['AA1'] = [aa[ind] for aa,ind in zip(AA2, double_mut_pos[:,0])]
@@ -256,19 +256,19 @@ def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logic
     cutoff = logKD2PWM(-6) - wt_val
 
     if logical_operator == 'AND':
-        allowable = (summary['X1'] > cutoff) & (summary['X2'] > cutoff)
+        allowable = (summary['h1'] > cutoff) & (summary['h2'] > cutoff)
         num_catastrophic = '$2$'
     if logical_operator == 'XOR':
-        allowable = (summary['X1'] > cutoff) ^ (summary['X2'] > cutoff)
+        allowable = (summary['h1'] > cutoff) ^ (summary['h2'] > cutoff)
         num_catastrophic = '$1$'
     if logical_operator == 'NAND':
-        allowable = ~((summary['X1'] > cutoff) & (summary['X2'] > cutoff))
+        allowable = ~((summary['h1'] > cutoff) & (summary['h2'] > cutoff))
         num_catastrophic = '$0, 1$'
     if logical_operator == 'NOR':
-        allowable = ~((summary['X1'] > cutoff) | (summary['X2'] > cutoff))
+        allowable = ~((summary['h1'] > cutoff) | (summary['h2'] > cutoff))
         num_catastrophic = '$0$'
     if logical_operator == 'ALL':
-        allowable = np.isfinite(summary['X1']) & np.isfinite(summary['X2'])
+        allowable = np.isfinite(summary['h1']) & np.isfinite(summary['h2'])
         num_catastrophic = '$0-2$'
 
     cutoff = norm.ppf(0.95)
@@ -279,8 +279,8 @@ def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logic
         summary['Z_sign2'] *= -1
 
 
-    p_improved = (PWM2logKD(summary['f']) < wt_val).sum() / float(summary.shape[0])
-    p_viable = (PWM2logKD(summary['f']) < -6).sum() / float(summary.shape[0])
+    p_improved = (PWM2logKD(summary['F']) < wt_val).sum() / float(summary.shape[0])
+    p_viable = (PWM2logKD(summary['F']) < -6).sum() / float(summary.shape[0])
 
     p_allowable = allowable.sum() / float(first_size)
     single, double = query_FDR_p(-cutoff, cutoff)
@@ -304,12 +304,12 @@ def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logic
     num_s_e = summary.shape[0]
     num_r_s_e = summary.loc[((summary['Z_sign1'] < -cutoff) & (summary['Z1'] > cutoff)) & ((summary['Z_sign2'] < -cutoff) & (summary['Z2'] > cutoff))].shape[0]
 
-    viable = summary.loc[PWM2logKD(summary['f']) < -6 ]
+    viable = summary.loc[PWM2logKD(summary['F']) < -6 ]
 
     num_viable = viable.shape[0]
     num_viable_r_s_e = viable.loc[((viable['Z_sign1'] < -cutoff) & (viable['Z1'] > cutoff)) & ((viable['Z_sign2'] < -cutoff) & (viable['Z2'] > cutoff))].shape[0]
 
-    super_sig = (PWM2logKD(summary['f']) < wt_val).sum()
+    super_sig = (PWM2logKD(summary['F']) < wt_val).sum()
     if not(fid == None):
         fid.write('%s & %s & %s & %i & %i/%.2f  & %i/%.2f & %i/%.2f & %i/%.2f & %i/%.2f \\\\ \\hline \n'%(title_name, num_catastrophic, epistasis, total_count, num_s_e, expected_num_s_e, num_r_s_e, expected_num_r_s_e, num_viable, expected_num_viable, num_viable_r_s_e, expected_num_viable_r_s_e, super_sig, expected_super_sig))
 
@@ -324,16 +324,16 @@ def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logic
             usethis.append(for_show.index[np.argsort(for_show['Z1']+for_show['Z2'])[-1]])
             for_show = for_show.drop(usethis[-1])
         if for_show.shape[0]>0:
-            usethis.append(for_show.index[np.argsort(for_show['f'])[0]])
+            usethis.append(for_show.index[np.argsort(for_show['F'])[0]])
             for_show = for_show.drop(usethis[-1])
         if for_show.shape[0]>0:
-            usethis.append(for_show.index[np.argsort(for_show['f'])[0]])
+            usethis.append(for_show.index[np.argsort(for_show['F'])[0]])
             for_show = for_show.drop(usethis[-1])
         if len(usethis)>0:
             representative = summary.loc[usethis]
             plot_connected_dm(representative, ax, title_name, make_colorbar, y_offset)
 
-    print '%s %s, average effect: %f'%(title_name, logical_operator, (summary['f'] - summary['f1']).mean())
+    print '%s %s, average effect: %f'%(title_name, logical_operator, (summary['F'] - summary['F_PWM']).mean())
     return summary
 
 
