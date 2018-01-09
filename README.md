@@ -1,5 +1,5 @@
 # epistasis_4_4_20
-I ran this code using Python 2.7.13 from anaconda (https://www.anaconda.com/download/). This used scipy=0.19.1, numpy=1.13.1, pandas=0.20.3. I installed the additional programs
+This is the code used to create the figures in my preprint "Physical epistatic landscape of antibody binding affinity" (https://www.biorxiv.org/content/early/2017/12/11/232645). I ran this code using Python 2.7.13 from anaconda (https://www.anaconda.com/download/). This used scipy=0.19.1, numpy=1.13.1, pandas=0.20.3. I installed the additional programs
 ```
 #monotonic fit requirement
 conda install -y -c python cvxopt
