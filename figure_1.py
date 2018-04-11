@@ -4,36 +4,36 @@ import matplotlib.pyplot as plt
 import pdb
 import pandas
 from helper import *
-from scipy.stats import norm, chi2, pearsonr, spearmanr
 from scipy import stats
-from matplotlib.colors import LogNorm
 from matplotlib.ticker import MaxNLocator
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import LinearSegmentedColormap, LogNorm
 from matplotlib import gridspec
 from labeler import Labeler
 from data_preparation_transformed import get_f1, get_data
 from get_fit_PWM_transformation import get_transformations
 import matplotlib.patheffects as PathEffects
 import svgutils.transform as sg
-#import os
-logKD2PWM, PWM2logKD = get_transformations()
 
 def make_heatmap(AA, KD, num_muts, reference):
+    #convert KD from amino acid sequences with mutation away from reference, and 
+    #return a pandas array with columns denoting position, rows denoting amino acid
     inds = np.where(num_muts == 1)[0]
+    wt_ind = np.where(num_muts == 0)[0]
+    get_position = lambda seq:int(np.where([seq[ii] != reference[ii] for ii in range(len(reference))])[0])
+    AA1 = [AA[ind] for ind in inds]
+    positions = [get_position(aa) for aa in AA1] + range(len(reference))
+    AA_mut = [aa[position] for aa, position in zip(AA1, positions)] + list(reference)
+    KD = KD[inds].tolist() + KD[wt_ind].tolist() * len(reference)
+    out = pandas.DataFrame({'AA':AA_mut, 'residue':positions,'KD':KD})
+    out = out.pivot(index='AA', columns='residue', values='KD')
     aas = ['G','A','V','I','L','M','F','Y','W','S','T','N','Q','C','P','H','K','R','D','E']
-    aa_map = {k:ii for ii, k in enumerate(aas)}
-    wt_val = float(KD[np.where(num_muts==0)[0]])
-    out = np.zeros((20, len(reference))) + wt_val
-    for ind in inds:
-        curr_AA = AA[ind]
-        curr_KD = KD[ind]
-        residue_pos = int(np.where([curr_AA[ii] != reference[ii] for ii in range(len(reference))])[0])
-        out[aa_map[curr_AA[residue_pos]], residue_pos] = curr_KD
-    out = pandas.DataFrame(out, index=aas)
-    return out
-
+    return out.loc[aas]
+    
 # This is the function that does all of the plotting
 def plot_panel(ax, heatmap, wtseq, optseq, colormap, make_cbar=True, plot_yticks=True):
+    #plot heatmap to the ax axis. Wtseq and optimal (optseq) will be overlaid on top.
+    #colormap is the colormap of the heatmap. make_cbar specifies if the colorbar should be made
+    #plot_yticks denotes whether to plot the amino acids.
     vlim = [-9.5, -5.0]
     pos = heatmap.keys()
     cax = ax.pcolor(heatmap, cmap=colormap, vmin=vlim[0], vmax=vlim[1])
@@ -41,13 +41,13 @@ def plot_panel(ax, heatmap, wtseq, optseq, colormap, make_cbar=True, plot_yticks
 
     for ii, aa in enumerate(wtseq):
         jj = np.where(aa_index==aa)[0][0]
-        plt.scatter(ii+0.5, jj+0.5, \
+        ax.scatter(ii+0.5, jj+0.5, \
             marker='o', c=[0.8,0.2,0.8], linewidths=0.5, s=10)
 
         # Plot OPT seq mutation if any occurs at position ii
         if not (optseq[ii] == aa):
             jj = np.where(aa_index==optseq[ii])[0][0]
-            plt.scatter(ii+0.5,jj+0.5, \
+            ax.scatter(ii+0.5,jj+0.5, \
                 marker='o', c='Lime', linewidths=0.5, s=10)
 
     ax.set_xlabel('VH position',labelpad=2)
@@ -66,7 +66,6 @@ def plot_panel(ax, heatmap, wtseq, optseq, colormap, make_cbar=True, plot_yticks
     if make_cbar:
         ticks = [-9.0, -8.0, -7.0, -6.0, -5.0]
         ticklabels = [r'$10^{%i}$'%t for t in ticks]
-        #ticklabels[0]= r'$\leq$' + ticklabels[0]
         ticklabels[-1]= r'$\geq$' + ticklabels[-1]
         p3 = ax.get_position().get_points()
         x00, y0 = p3[0]
@@ -76,8 +75,8 @@ def plot_panel(ax, heatmap, wtseq, optseq, colormap, make_cbar=True, plot_yticks
         position = ([x01+0.005, y0, 0.015, y1-y0])
         cbar = plt.colorbar(cax, cax=plt.gcf().add_axes(position), orientation='vertical', ticks=ticks)
         cbar.ax.set_yticklabels(ticklabels)
-        cbar.ax.tick_params()
-        cbar.set_label(r'$K_D$ [M]',labelpad=-10)
+        #cbar.ax.tick_params()
+        cbar.set_label(r'$K_d$ [M]',labelpad=-10)
 
     ax.xaxis.set_ticks_position('none')
     ax.yaxis.set_ticks_position('none')
@@ -94,9 +93,9 @@ def plot_epistasis(f, f1, num_muts, lims, ax, curr_title='', make_cbar=False, pl
     corr = np.corrcoef(f[usethis], f1[usethis])
 
     nbins = 20
-    lims = PWM2logKD(np.array(lims))
+    lims = np.array(lims)
     H, xedges, yedges = np.histogram2d(
-        PWM2logKD(f[usethis]), PWM2logKD(f1[usethis]),
+        f[usethis], f1[usethis],
         bins=[np.linspace(lims[0], lims[1], nbins+1),
              np.linspace(lims[0], lims[1], nbins+1)])
     plt.sca(ax)
@@ -115,7 +114,8 @@ def plot_epistasis(f, f1, num_muts, lims, ax, curr_title='', make_cbar=False, pl
 
 
     if logscale:
-        xticks = [-9,-7,-5]
+        in_interval = lambda x: (x >= lims[0]) and (x <= lims[1])
+        xticks = [ii for ii in range(int(np.floor(lims[0]))-1, int(np.ceil(lims[1]))+1) if ((ii%2)==1) and in_interval(ii)]
         ax.set_xticks(xticks)
         ax.set_yticks(xticks)
         format_num = lambda x:int(np.round(x))
@@ -181,8 +181,9 @@ def plot_epistasis(f, f1, num_muts, lims, ax, curr_title='', make_cbar=False, pl
     return cbar
 
 if __name__ == '__main__':
-    med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM)
-
+    logKD2PWM, PWM2logKD = get_transformations() #choose log transformation
+    med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM) #get data
+    #separate data into CDR1H, CDR3H
     usethis1 = np.where(med_rep['CDR3_muts']==0)[0]
     usethis3 = np.where(med_rep['CDR1_muts']==0)[0]
 
@@ -195,8 +196,16 @@ if __name__ == '__main__':
     KD1 = np.array((med_rep['KD'].loc[usethis1]))
     KD3 = np.array((med_rep['KD'].loc[usethis3]))
 
+    E1 = np.array((med_rep['E'].loc[usethis1]))
+    E3 = np.array((med_rep['E'].loc[usethis3]))
+
     num_muts1 = np.array(med_rep['CDR1_muts'].loc[usethis1])
     num_muts3 = np.array(med_rep['CDR3_muts'].loc[usethis3])
+    E = (np.array(10**(med_rep['E'])))
+    Es = np.sort(E)
+    print 'percent expression decrease first quartile: %f'%(100*(1 - Es[Es.shape[0]/4]))
+    print 'percent expression decrease third quartile: %f'%(100*(1 - Es[Es.shape[0]*2/4]))
+    print 'percent expression decrease third quartile: %f'%(100*(1 - Es[Es.shape[0]*3/4]))
 
     cdr1_wtseq = 'TFSDYWMNWV'
     cdr3_wtseq = 'GSYYGMDYWG'
@@ -208,17 +217,6 @@ if __name__ == '__main__':
     wt_val = np.array(med_rep['KD'])[usethis]
     white_point = (PWM2logKD(wt_val)+9.5)/4.5
     affinity_maturation = (-6+9.5)/4.5
-    #cdict1 = {'red':((0.,1.,1.),
-    #                    (white_point,1.,1.),
-    #                    (affinity_maturation, 0, 0.5),
-    #                    (1.,0.8,0.8)),
-    #                'green':((0.,0.,0.),
-    #                    (white_point,1.,1.),
-    #                    (1.,0.,0.)),
-    #                'blue':((0.,0.,0.),
-    #                    (white_point,1.,1.),
-    #                    (1.,1.,1.))
-    #                }
     cdict1 = {'red':((0.,1.,1.),
                     (white_point,1.,1.),
                     (affinity_maturation, 0, 0.0),
@@ -258,14 +256,10 @@ if __name__ == '__main__':
         hspace = 2.3,
         wspace = 0.2)
 
-    # Make a labler to add labels to subplots
+    # Make a labeler to add labels to subplots
     labeler = Labeler(xpad=.015,ypad=.007,fontsize=14)
     A_heatmap = make_heatmap(AA, med_rep['KD'], med_rep['CDR1_muts'] + med_rep['CDR3_muts'], wtseq)
     A_heatmap = A_heatmap.rename(columns={k:v for k,v in enumerate(range(28, 38)+range(100,110))})
-
-    #ax = plt.subplot(gs[0:6,0:4])
-    #ax.set_xlabel('VH position')
-
     # Affinity plot, lib1
     ax = plt.subplot(gs[0:6,0:7])
     labeler.label_subplot(ax,'C')
@@ -274,36 +268,67 @@ if __name__ == '__main__':
 
     # Affinity plot, lib2
     ax = plt.subplot(gs[0:6,9:16])
-    #labeler.label_subplot(ax,'B')
     plot_panel(ax, A_heatmap[range(100,110)], cdr3_wtseq, cdr3_optseq, colormap=red_blue, make_cbar = True, plot_yticks=False)
     ax.set_title('3H', fontsize=mpl.rcParams['font.size'])
 
     ax = plt.subplot(gs[0:3,30:40])
 
     f1, x = get_f1(A1, num_muts1, KD1, wt_val, limit=KD_lims)
+    usethis = np.isfinite(E1) & np.isfinite(KD1)
+    myf = stats.spearmanr(np.exp(E1[usethis]), KD1[usethis])
+    print 'CDR1H spearman correlation E to F:%f, p-value: %e'%(myf[0], myf[1])
+
+    myf = stats.linregress(np.exp(E1[usethis]), KD1[usethis])    
+    residual = myf[0] * np.exp(E1[usethis]) + myf[1] - KD1[usethis]
+    Rsquare = 1 - np.sum(residual**2)/ np.sum((KD1[usethis] - np.mean(KD1[usethis]))**2)
+    print 'CDR1H R^2, m*E + b = F: %f, p-value: %e'%(Rsquare, myf[3])
+    
+    usethis = np.isfinite(E1) & np.isfinite(KD1-f1) & (num_muts1==1)
+    myf = stats.linregress(np.exp(E1[usethis]), KD1[usethis])    
+    residual = myf[0] * np.exp(E1[usethis]) + myf[1] - KD1[usethis]
+    Rsquare = 1 - np.sum(residual**2)/ np.sum((KD1[usethis] - np.mean(KD1[usethis]))**2)
+    print 'CDR1H 1 mut R^2, m*E + b = F: %f, p-value: %e'%(Rsquare, myf[3])
+    
+    usethis = np.isfinite(E1) & np.isfinite(KD1-f1) & (num_muts1>1)
+    myf = stats.linregress(np.exp(E1[usethis]), KD1[usethis]-f1[usethis])
+    residual = myf[0] * np.exp(E1[usethis]) + myf[1] - (KD1 - f1)[usethis]
+    Rsquare = 1 - np.sum(residual**2)/ np.sum(((KD1-f1)[usethis] - np.mean((KD1-f1)[usethis]))**2)
+    print 'CDR1H R^2 m*E + b = (F - F1): %f, m p-value: %f'%(Rsquare, myf[3])
+
     plot_epistasis(KD1, f1, num_muts1, KD_lims, ax, make_cbar=True, plot_ytick=True, plot_xtick=False, max_freq=1)
-    #ax.set_xlabel(r'$K_D$ [M]')
     ax.set_ylabel('PWM [M]', labelpad=2)
     txt = ax.text(0.05, 0.85,'1H', transform=ax.transAxes)
     txt.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='w')])
     labeler = Labeler(xpad=.12,ypad=.007,fontsize=14)
-    #labeler.label_subplot(ax,'B')
-
-    #p3 = np.array(ax.get_position().get_points())
-    #height = p3[1][1]-p3[0][1]
-
 
     ax = plt.subplot(gs[3:6,30:40])
     f1, x = get_f1(A3, num_muts3, KD3, wt_val, limit=KD_lims)
-    cbar = plot_epistasis(KD3, f1, num_muts3, KD_lims, ax, make_cbar=True, plot_ytick=True, max_freq=1)
-    #position = cbar.get_position()
-    #cbar.set_position([position.x,position.y,position.width, height])
+    usethis = np.isfinite(E3) & np.isfinite(KD3)
+    myf = stats.spearmanr(np.exp(E3[usethis]), KD3[usethis])
+    print 'CDR3H spearman correlation E to F:%f, p-value: %e'%(myf[0], myf[1])
+    
+    myf = stats.linregress(np.exp(E3[usethis]), KD3[usethis])
+    residual = myf[0] * np.exp(E3[usethis]) + myf[1] - KD3[usethis]
+    Rsquare = 1 - np.sum(residual**2)/ np.sum((KD3[usethis] - np.mean(KD3[usethis]))**2)
+    print 'CDR3H R^2, m*E + b = F: %f, p-value: %e'%(Rsquare, myf[3])
 
-    ax.set_xlabel(r'$K_D$ [M]')
+    usethis = np.isfinite(E3) & np.isfinite(KD3-f1) & (num_muts3==1)    
+    myf = stats.linregress(np.exp(E3[usethis]), KD3[usethis])
+    residual = myf[0] * np.exp(E3[usethis]) + myf[1] - KD3[usethis]
+    Rsquare = 1 - np.sum(residual**2)/ np.sum((KD3[usethis] - np.mean(KD3[usethis]))**2)
+    print 'CDR3H 1 mut R^2, m*E + b = F: %f, p-value: %e'%(Rsquare, myf[3])
+    
+    usethis = np.isfinite(E3) & np.isfinite(KD3-f1) & (num_muts3>1)
+    myf = stats.linregress(np.exp(E3[usethis]), KD3[usethis]-f1[usethis])
+    residual = myf[0] * np.exp(E3[usethis]) + myf[1] - (KD3-f1)[usethis]
+    Rsquare = 1 - np.sum(residual**2)/ np.sum(((KD3-f1)[usethis] - np.mean((KD3-f1)[usethis]))**2)
+    print 'CDR3H R^2 m*E + b = (F - F1): %f, m p-value: %f'%(Rsquare, myf[3])
+    cbar = plot_epistasis(KD3, f1, num_muts3, KD_lims, ax, make_cbar=True, plot_ytick=True, max_freq=1)
+
+    ax.set_xlabel(r'$K_d$ [M]')
     ax.set_ylabel('PWM [M]', labelpad=2)
     txt = ax.text(0.05, 0.85,'3H', transform=ax.transAxes)
     txt.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='w')])#labeler.label_subplot(ax,'D')
-    #ax.set_xlabel(r'$K_D$ [M]')
     ax = plt.subplot(gs[0:3,30:40])
     labeler.label_subplot(ax,'D')
 
@@ -312,24 +337,17 @@ if __name__ == '__main__':
     plt.close()
 
     fig = sg.SVGFigure( "%.2fcm"%(7.3*0.7*2.54), "%.2fcm"%(4.1*2.54))
-    #fig = sg.SVGFigure( "%.2f"%(7.3*0.7*2.54), "%.2f"%(4.1*2.54))
-
-    # load matpotlib-generated figures
+    # load matplotlib-generated figures
     fig1 = sg.fromfile('figure_1_top.svg')
     fig2 = sg.fromfile('figure_1_lower.svg')
     # get the plot objects
     plot1 = fig1.getroot()
-    plot1.moveto(0, 0)#, scale=7.3*0.7/144.5669)
-
+    plot1.moveto(0, 0)
     plot2 = fig2.getroot()
-
-    plot2.moveto(0, 80)#*7.3*0.7/144.5669, scale=7.3*0.7/144.5669)
-
-    # add text labels
-
+    plot2.moveto(0, 80)
+    
     # append plots and labels to figure
     fig.append([plot1, plot2])
 
     # save generated SVG files
     fig.save("figure_1.svg")
-    #os.system('inkscape -A figure_1_inkscape.pdf figure_1.svg')

@@ -1,15 +1,10 @@
 #!/usr/bin/env python
-import pylab
-from matplotlib.patches import Rectangle
-from matplotlib.colors import LogNorm
 from matplotlib.ticker import MaxNLocator
 import pdb
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from matplotlib import rc
 import pandas
 from helper import *
-from scipy.stats import norm
 from labeler import Labeler
 from sklearn.linear_model import lasso_path, Lasso
 import os
@@ -36,11 +31,7 @@ med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM)
 
 mpl.rcParams['font.size'] = 10
 mpl.rcParams['pdf.fonttype'] = 42
-#mpl.rcParams['ps.useafm'] = True
-#rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 mpl.font_manager.FontProperties(family = 'Helvetica')
-
-pos_cutoff = 2
 
 def fit_ave_epistasis_by_pos(A, num_muts, val, AA, seq, lims):
     np.random.seed(1)
@@ -136,7 +127,6 @@ def fit_epistasis(A, num_muts, val, AA, seq, lims, subsets):
     penalties, SSE, best_penalty, coeff = fit_lasso(A, f, f1, subsets, lims)
     Rsquare = 1 - SSE/np.nansum((f[list(itertools.chain.from_iterable(subsets))]-np.nanmean(f[list(itertools.chain.from_iterable(subsets))]))**2)
     print Rsquare
-    #pdb.set_trace()
     epi_energy = A.dot(coeff)
 
     def coeff_to_matrix(x, usethis, offset=0):
@@ -235,7 +225,7 @@ def get_stats(in_pd):
     surf_0 = {'mu1':[], 'sigma1':[],'mu2':[], 'sigma2':[],'boundary':[],'num_muts':[],'dm2_dJ':[],'sigma_dm2_dJ':[]}
     ind = np.argsort(in_pd['seed'])
     in_pd = in_pd.loc[ind]
-    for boundary in np.unique(in_pd['boundary'].tolist())[::-1]:
+    for boundary in np.unique(in_pd['boundary'].dropna().tolist())[::-1]:
         for num_muts in [10]:
             if boundary <= -9.5:
                 continue
@@ -319,24 +309,18 @@ def fmt(x, pos):
     b = int(b)
     return r'${} \times 10^{{{}}}$'.format(a, b)
 
-def summary_plot(surf, vol, ax1, ax2, colors, title=[''], make_colorbar=False, ylabels=False, make_legend=False):
+def summary_plot(surf, vol, ax1, ax2, colors, title=[''], make_colorbar=False, ylabels=False):
     V1 = vol.pivot(index='num_muts', columns='boundary', values='mu1')
     V1_sigma = vol.pivot(index='num_muts', columns='boundary', values='sigma1')
 
     V2 = vol.pivot(index='num_muts', columns='boundary', values='mu2')
     V2_sigma = vol.pivot(index='num_muts', columns='boundary', values='sigma2')
 
-    #dV_dJ = vol.pivot(index='num_muts', columns='boundary', values='dm2_dJ')
-    #dV_dJ_sigma = vol.pivot(index='num_muts', columns='boundary', values='sigma_dm2_dJ')
-
     S1 = surf.pivot(index='num_muts', columns='boundary', values='mu1')
     S1_sigma = surf.pivot(index='num_muts', columns='boundary', values='sigma1')
 
     S2 = surf.pivot(index='num_muts', columns='boundary', values='mu2')
     S2_sigma = surf.pivot(index='num_muts', columns='boundary', values='sigma2')
-
-    #dS_dJ = surf.pivot(index='num_muts', columns='boundary', values='dm2_dJ')
-    #dS_dJ_sigma = surf.pivot(index='num_muts', columns='boundary', values='sigma_dm2_dJ')
 
     for num_muts in [10]:
         ax = ax1
@@ -351,12 +335,9 @@ def summary_plot(surf, vol, ax1, ax2, colors, title=[''], make_colorbar=False, y
 
         cax = ax.errorbar(10**boundary, x, yerr=xs, fmt='.', c=colors[0],markersize=0, capsize=0)
         cax = ax.errorbar(10**boundary, y, yerr=ys, fmt='.', c=colors[1],markersize=0, capsize=0)
-        #cax = ax.errorbar(10**boundary, x, yerr=xs, fmt='.', c=colors[0],markersize=0, capsize=0)
-        #cax = ax.errorbar(10**boundary, y, yerr=ys, fmt='.', c=colors[1],markersize=0, capsize=0)
         cax = ax.errorbar(10**boundary, x, yerr=xs, fmt='.', c=[0,0,0],markersize=0, capsize=0, zorder=21)
         cax = ax.errorbar(10**boundary, y, yerr=ys, fmt='.', c=[0,0,0],markersize=0, capsize=0, zorder=21)
 
-        #ax.set_xlabel(r'$K_D$ [M]')
         ax.set_xscale('log')
         ax.set_yscale('log')
         scale_min = np.min(np.hstack((x,y)))
@@ -366,33 +347,9 @@ def summary_plot(surf, vol, ax1, ax2, colors, title=[''], make_colorbar=False, y
 
         ax.set_xlim([1e-9, 1e-6])
         ax.set_ylim([1e4,1e8])
-        #ax.plot([0,1],[0,1],'--', c=[0.3,0.3,0.3], transform=ax.transAxes)
-        if make_legend:
-            #leg = ax.legend(loc='upper left',frameon=False, scatterpoints=1, borderaxespad=0, handlelength=1., handletextpad=0)
-            print 'nevermore'
-        '''if make_colorbar:
-            ticks = [-9,-8,-7,-6]
 
-            p3 = ax.get_position().get_points()
-            x00, y0 = p3[0]
-            x01, y1 = p3[1]
-
-            midpoint = (y1+y0)/2.
-            height = y1-y0
-            # [left, bottom, width, height]
-            position = ([x01+0.02, midpoint - height/3, 0.01, 2 * height/3.])
-            #cbar = plt.colorbar(im, orientation='vertical', ticks=lvls2)
-            cbar = plt.colorbar(cax, cax=plt.gcf().add_axes(position), orientation='vertical', ticks=ticks)
-            cbar.set_ticklabels(['$10^{%i}$'%(logKD) for logKD in ticks])
-
-
-            #cbar.ax.set_yticklabels([r'$10^{%d}$'%np.log10(t) for t in lvls2])
-            cbar.set_label(r'boundary $K_D$ [M]',labelpad=2)
-        '''
         ax.set_yticks([1e4,1e6,1e8])
         ax.set_xticks([1e-9,1e-8,1e-7,1e-6])
-        #ax.set_title(title)
-        #ax.set_aspect(1)
         if not ylabels:
             ax.set_yticklabels([])
         else:
@@ -408,21 +365,17 @@ def summary_plot(surf, vol, ax1, ax2, colors, title=[''], make_colorbar=False, y
         cax = ax.plot(10**boundary, x, lw=1, c=colors[0], label=title + r', PWM')
         cax = ax.plot(10**boundary, y, lw=1, c=colors[1], label=title + r', pair')
 
-        #cax = ax.errorbar(10**boundary, x, yerr=xs, fmt='.', c=colors[0],markersize=0, capsize=0)
-        #cax = ax.errorbar(10**boundary, y, yerr=ys, fmt='.', c=colors[1],markersize=0, capsize=0)
         cax = ax.errorbar(10**boundary, x, yerr=xs, fmt='.', c=[0,0,0],markersize=0, capsize=0, zorder=21)
         cax = ax.errorbar(10**boundary, y, yerr=ys, fmt='.', c=[0,0,0],markersize=0, capsize=0, zorder=21)
-        ax.set_xlabel(r'$K_D$ [M]')
+        ax.set_xlabel(r'$K_d$ [M]')
         ax.set_xscale('log')
         ax.set_yscale('linear')
 
         ax.xaxis.set_major_locator(MaxNLocator(4))
-        #ax.yaxis.set_major_locator(MaxNLocator(4))
         scale_min = np.min(np.hstack((x,y)))
         scale_max = np.max(np.hstack((x,y)))
         scale_min = np.floor(scale_min*20)/20.
         scale_max = np.ceil(scale_max*20)/20.
-        #ax.set_aspect(1)
         ax.set_yticks([0.7,0.8,0.9])
         ax.set_xticks([1e-9,1e-8,1e-7,1e-6])
 
@@ -431,7 +384,6 @@ def summary_plot(surf, vol, ax1, ax2, colors, title=[''], make_colorbar=False, y
         else:
             ax.set_ylabel(r'$A/V$')
 
-        #ax.set_xlim([0.65,0.95])
         ax.set_ylim([0.65,0.95])
         ax.set_xlim([1e-9, 1e-6])
 
@@ -452,12 +404,6 @@ usethis1 = med_rep.index[usethis1]
 usethis3 = med_rep.index[usethis3]
 KD1 = np.array((med_rep['KD'].loc[usethis1]))
 KD3 = np.array((med_rep['KD'].loc[usethis3]))
-KD1_err = np.array((med_rep['KD_err'].loc[usethis1]))
-KD3_err = np.array((med_rep['KD_err'].loc[usethis3]))
-E1 = np.array((med_rep['E'].loc[usethis1]))
-E3 = np.array((med_rep['E'].loc[usethis3]))
-E1_err = np.array((med_rep['E_err'].loc[usethis1]))
-E3_err = np.array((med_rep['E_err'].loc[usethis3]))
 num_muts1 = np.array(med_rep['CDR1_muts'].loc[usethis1])
 num_muts3 = np.array(med_rep['CDR3_muts'].loc[usethis3])
 KD_use1 = ~np.array(med_rep['KD_exclude'].loc[usethis1])
@@ -505,6 +451,7 @@ except:
     pandas.DataFrame(epi_p3).to_csv('./biochemical_fit/epi_p3.csv')
 
 if __name__ == '__main__':
+
     print '# of found epistatic terms from biochemical model, CDR1H: %i, CDR3H: %i'%(np.sum(KD_average_epi_1!=0),np.sum(KD_average_epi_3!=0))
     A_opt1 = make_linear_epistasis_model(['TFGHYWMNWV'], cdr1_list)
     A_opt3 = make_linear_epistasis_model(['GASYGMEYLG'], cdr3_list)
@@ -562,13 +509,9 @@ if __name__ == '__main__':
     ax.set_xlim([-1.3,3.8])
     ax.axis('off')
 
-    #ax = plt.subplot(gs[6,:])
-    #plot_connections(KD_average_epi_3, cdr3_list, 100,0.0, ax, 0, visible=False)
-    #ax.axis('off')
     leg = ax.legend(loc='lower center', bbox_to_anchor=(0.63,-0.19), frameon=False, columnspacing=1, handlelength=0.6, ncol=2)
     for legobj in leg.legendHandles:
         legobj.set_linewidth(4)
-    #ax.axis('off')
 
     ax3 = plt.subplot(gs[1:4,(num_x*3/5+1):])
     ax4 = plt.subplot(gs[6:9,(num_x*3/5+1):])
@@ -584,7 +527,7 @@ if __name__ == '__main__':
 
     cdr3_results = pandas.read_csv('cdr3h.csv', header=0)
     vol_0, surf_0 = get_stats(cdr3_results)
-    summary_plot(surf_0, vol_0, ax3, ax4, colors=['#800000','#FF8080'], title ='3H', make_colorbar=False, ylabels=True, make_legend=True)
+    summary_plot(surf_0, vol_0, ax3, ax4, colors=['#800000','#FF8080'], title ='3H', make_colorbar=False, ylabels=True)
     leg = ax3.legend(loc='center', bbox_to_anchor=(0.5, 1.3),ncol=2, columnspacing=0.1, frameon=True, fancybox=True, scatterpoints=1, borderaxespad=0, handlelength=1., handletextpad=0.5)
 
 

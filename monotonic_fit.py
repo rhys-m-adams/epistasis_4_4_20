@@ -108,13 +108,18 @@ def make_matrices(M, my_b, C, wt_val, alpha, upper_constrain, lower_constrain):
     #Remove Mx-d corresponding to zero or single mutants for efficiency...
     #the error is defined to be 0 for these data points
     #M = csc_matrix(make_residual_matrix(vals, my_b))
+    bound_values = ~(upper_constrain|lower_constrain)
+    #C = C[bound_values]
+    #M = M[bound_values]
     Obj = M - C
-    upper_constrain = np.where(upper_constrain)[0]
-    lower_constrain = np.where(lower_constrain)[0]
-    num_contraints = upper_constrain.shape[0] + lower_constrain.shape[0]
-    boundary = csc_matrix((np.ones(num_contraints), (upper_constrain.tolist()+lower_constrain.tolist(), range(num_contraints))),
-        shape=(Obj.shape[0], num_contraints))
-    upper_Obj = hstack((Obj, boundary))
+    C_bounded = csc_matrix(C)
+    right = np.zeros(C.shape[1])
+    right[-1] = 1.
+    left = np.zeros(C.shape[1])
+    left[0] = 1.
+    C_bounded[upper_constrain] = left
+    C_bounded[lower_constrain] = right
+    upper_Obj = M - C_bounded
 
     bound_Obj = upper_Obj
     q = matrix(np.zeros((bound_Obj.shape[1], 1)))
@@ -122,25 +127,12 @@ def make_matrices(M, my_b, C, wt_val, alpha, upper_constrain, lower_constrain):
     #subject to the absolute constraint (A*x = b)
     #f(M_wt) = 0 (A1[0])
     #fmax - fmin = 1 (A1[1])
-    #f1 outside of bounds -> bounds (A2 and A3)
     M_wt = np.array(make_residual_matrix([wt_val], my_b).todense()).flatten()
     M_constraint = m_to_M(my_b[-1], my_b) - m_to_M(my_b[0], my_b)
     A1 = np.zeros((2, bound_Obj.shape[1]))
     A1[:, :Obj.shape[1]] = np.array([M_wt, M_constraint])
-
-    A2 = np.array(C[upper_constrain].todense())
-    A2[:,-1] -= 1
-    A2 = np.hstack((A2, -np.array(boundary[upper_constrain.tolist()].todense())))
-
-    A3 = np.array(C[lower_constrain].todense())
-    A3[:,0]  += 1
-    A3 = np.hstack((A3, -np.array(boundary[lower_constrain.tolist()].todense())))
-    
-    A = np.vstack((A1, A2, A3))
-    A = matrix(A)
-
-    b = np.array([[0, -1]]).T
-    b = np.vstack((b, np.zeros((A2.shape[0] + A3.shape[0], 1))))
+    A = matrix(A1)
+    b = np.array([[0., -1]]).T
     b = matrix(b)
 
     # With inequality Δx < 0, rewritten as
@@ -162,9 +154,9 @@ def make_matrices(M, my_b, C, wt_val, alpha, upper_constrain, lower_constrain):
     #scrutinize = P
     #add smoothing penalty to objective
     P = P.todense()
-    P[:K.shape[0],:K.shape[1]] += alpha * K
+    P += alpha * K
     P = matrix(P)
-    return P, q, G, h, A, b, M, upper_Obj
+    return P, q, G, h, A, b, M, Obj
 
 def fit_energy(M, my_b, C, wt_val, a, suppress_out):
     grid_size = my_b.shape[0]

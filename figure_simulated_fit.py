@@ -2,52 +2,25 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import pylab
 import numpy as np
 import pdb
 import time
-import random
 import pandas
 from scipy.stats import linregress
 from data_preparation_transformed import get_f1, get_data , get_data_ind
 from matplotlib.ticker import MaxNLocator
 from labeler import Labeler
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset, inset_axes
-from figure_monotonic_transformation_fit import scan_fits, plot_scan
+from figure_monotonic_transformation_fit import plot_scan
+from monotonic_fit import monotonic_fit
 
-med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data()
 med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data_ind()
 mpl.rcParams['font.size'] = 10
 mpl.font_manager.FontProperties(family = 'Helvetica')
 mpl.rcParams['pdf.fonttype'] = 42
 
 num_muts = np.array(med_rep['CDR1_muts']) + np.array(med_rep['CDR3_muts'])
-random.seed(0)
 np.random.seed(0)
-
-def get_params(name, x_name, A, x, xerr, xlims, alphas):
-    try:
-        fit = pandas.read_csv(name + '.csv', header=0, index_col=0)
-        x = np.array(fit['x']).flatten()
-        y = np.array(fit['y']).flatten()
-        scan = pandas.read_csv(name+'_scan.csv', header=0, index_col=0)
-        alphas = np.array(scan['alphas']).flatten()
-        objective = np.array(scan['objective']).flatten()
-    except:
-        energies, alpha, objective = scan_fits(A, x, xlims, alphas)
-        fit = pandas.DataFrame({'x':x,'y':energies})
-        fit.to_csv(name + '.csv')
-        scan = pandas.DataFrame({'alphas':alphas,'objective':objective})
-        scan.to_csv(name + '_scan.csv')
-        x = np.array(fit['x']).flatten()
-        y = np.array(fit['y']).flatten()
-
-        alphas = np.array(scan['alphas']).flatten()
-        objective = np.array(scan['objective']).flatten()
-
-    fy = np.array(x)
-    params = 0
-    return x, y, fy, alphas, objective, params
 
 def plot_inset(x, y1, y2, l1, l2, ax, zoom_in=False):
     actually_fit = (x>x.min()) & (x<x.max())
@@ -55,8 +28,6 @@ def plot_inset(x, y1, y2, l1, l2, ax, zoom_in=False):
     y1 = y1 * slope+intercept
 
     y1, ind = np.unique(y1, return_index=True)
-    #ind = np.argsort(y)
-    #y1 = y1[ind]
     x = x[ind]
     y2 = y2[ind]
     delta = np.max([1,x.shape[0]/500])
@@ -98,11 +69,11 @@ plt.subplots_adjust(
     top = 0.95,
     left = 0.15,
     right = 0.96,
-    hspace = 0.8,
+    hspace = 0.6,
     wspace = 0.6)
 
 # Make a labler to add labels to subplots
-labeler = Labeler(xpad=0.04,ypad=0.0,fontsize=14)
+labeler = Labeler(xpad=0.04,ypad=0.01,fontsize=14)
 num_points = 36
 alphas = np.logspace(-3, 3, num_points)
 
@@ -110,6 +81,7 @@ x = np.random.randn(A.shape[1])
 E = A.dot(x)
 epsilon = np.random.randn(E.shape[0]) * np.std(E)/2.
 E += epsilon
+
 lims = np.array([np.sort(E)[200], np.sort(E)[-200]])
 rel_E = E/(lims[1]-lims[0])
 
@@ -120,54 +92,24 @@ def make_f(transform):
     f[f>f_lims[1]] = f_lims[1]
     return f, f_lims
 
+transformation = [np.exp, lambda x:x, lambda x:np.sin(2*x) + 2*x, lambda x:1./(1+np.exp(-1*x))]
+transform_name = [r'$e^E$' , r'$E$',r'$2E + $sin$ (2E)$', r'$(1+e^{-E})^{-1}$']
+out_name = ['exp','lin','sin','logistic']
+for g_inv, name, filename, ii in zip(transformation, transform_name, out_name, range(len(out_name))):
+    ax = axes[ii, 0]
+    f, f_lims = make_f(g_inv)
+    _, y, alphas, objective = monotonic_fit(A, f, f_lims, alphas, name='test_'+filename, already_fit=True, random_seed=0)
+    
+    plot_scan(alphas, objective, ax, full_height=False)
+    ax.set_ylabel(r'$R^2$')
+    labeler.label_subplot(ax,chr(ord('A') + ii))
+    
+    ax = axes[ii, 1]
+    plot_inset(f, rel_E, y, r'$F=$' + name, 'Fit', ax)
+    ax.set_ylabel('E')
 
-ax = axes[0,0]
-f, f_lims = make_f(np.exp)
-_, y, E_fit, alphas, objective, paramsE = get_params('test_exp',r'exponential', A, f, np.ones(f.shape), f_lims, alphas)
-plot_scan(alphas, objective, ax, full_height=False)
-ax.set_ylabel(r'$R^2$')
-labeler.label_subplot(ax,'A')
-
-ax = axes[0,1]
-plot_inset(f, rel_E, y, r'$F= e^E$', 'Fit', ax)
-#ax.set_xlabel('F')
-ax.set_ylabel('E')
-
-ax = axes[1,0]
-f, f_lims = make_f(lambda x:x)
-_, y, E_fit, alphas, objective, paramsE = get_params('test_lin',r'linear', A, f, np.ones(f.shape), f_lims, alphas)
-plot_scan(alphas, objective, ax, full_height=False)
-ax.set_ylabel(r'$R^2$')
-labeler.label_subplot(ax,'B')
-ax = axes[1,1]
-plot_inset(f, rel_E, y, r'$F= E$', 'Fit', ax)
-#ax.set_xlabel('F')
-ax.set_ylabel('E')
-
-ax = axes[2,0]
-f, f_lims = make_f(lambda x:np.sin(2*x) + 2*x)
-_, y, E_fit, alphas, objective, paramsE = get_params('test_sin',r'sin', A, f, np.ones(f.shape), f_lims, alphas)
-plot_scan(alphas, objective, ax, full_height=False)
-ax.set_ylabel(r'$R^2$')
-labeler.label_subplot(ax,'C')
-ax = axes[2,1]
-plot_inset(f, rel_E, y, r'$F= 2E + $sin$ (2E)$', 'Fit', ax, zoom_in=False)
-#ax.set_xlabel('F')
-ax.set_ylabel('E')
-ax.set_ylim([-1.2,0.9])
-
-ax = axes[3,0]
-f, f_lims = make_f(lambda x:1./(1+np.exp(-1*x)))
-_, y, E_fit, alphas, objective, paramsE = get_params('test_logistic',r'logistic', A, f, np.ones(f.shape), f_lims, alphas)
-plot_scan(alphas, objective, ax, full_height=False)
-ax.set_ylabel(r'$R^2$')
-ax.set_xlabel(r'$\alpha$')
-
-labeler.label_subplot(ax,'D')
-ax = axes[3,1]
-plot_inset(f, rel_E, y, r'$F= (1+e^{-E})^{-1}$', 'Fit', ax)
-ax.set_xlabel('F')
-ax.set_ylabel('E')
+axes[-1,0].set_xlabel(r'$\alpha$')
+axes[-1,1].set_xlabel('F')
 
 plt.savefig('simulated_energy_fit.pdf')
 plt.close()

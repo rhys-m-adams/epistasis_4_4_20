@@ -1,18 +1,14 @@
 #!/usr/bin/env python
 import pylab
-import matplotlib as mpl
 from matplotlib.patches import Rectangle
 import pdb
 import matplotlib.pyplot as plt
-import pandas
 from helper import *
-from scipy.stats.mstats import kruskalwallis
-from scipy.stats import mannwhitneyu
 from labeler import Labeler
 from structure_connections import distances
 import matplotlib.image as mpimg
 from matplotlib import gridspec
-from data_preparation_transformed import get_data, get_f1, cdr1_list, cdr3_list
+from data_preparation_transformed import get_data, get_f1
 from get_fit_PWM_transformation import get_transformations
 import subprocess
 import os
@@ -138,8 +134,6 @@ usethis1 = np.where(med_rep['CDR3_muts']==0)[0]
 usethis3 = np.where(med_rep['CDR1_muts']==0)[0]
 A1 = A[usethis1]
 A3 = A[usethis3]
-A2_1 = A2[usethis1]
-A2_3 = A2[usethis3]
 pos1 = pos[usethis1]
 pos3 = pos[usethis3]
 pos1 = pos1[:,:10]
@@ -148,23 +142,21 @@ usethis1 = med_rep.index[usethis1]
 usethis3 = med_rep.index[usethis3]
 KD1 = np.array((med_rep['KD'].loc[usethis1]))
 KD3 = np.array((med_rep['KD'].loc[usethis3]))
-KD1_err = np.array((med_rep['KD_err'].loc[usethis1]))
-KD3_err = np.array((med_rep['KD_err'].loc[usethis3]))
-E1 = np.array((med_rep['E'].loc[usethis1]))
-E3 = np.array((med_rep['E'].loc[usethis3]))
-E1_err = np.array((med_rep['E_err'].loc[usethis1]))
-E3_err = np.array((med_rep['E_err'].loc[usethis3]))
+KD1_std = np.array((med_rep['KD_std'].loc[usethis1]))
+KD3_std = np.array((med_rep['KD_std'].loc[usethis3]))
 num_muts1 = np.array(med_rep['CDR1_muts'].loc[usethis1])
 num_muts3 = np.array(med_rep['CDR3_muts'].loc[usethis3])
 KD_use1 = ~np.array(med_rep['KD_exclude'].loc[usethis1])
 KD_use3 = ~np.array(med_rep['KD_exclude'].loc[usethis3])
 
-#opt1 = [2, 3]
-#opt3 = [1, 2, 6, 8]
+Z_by_pos1 = calculate_Z_epistasis_by_pos(A1, num_muts1, KD1, KD1_std, pos1, KD_use1, KD_lims)
+Z_by_pos3 = calculate_Z_epistasis_by_pos(A3, num_muts3, KD3, KD3_std, pos3, KD_use3, KD_lims)
 
-Z_by_pos1 = calculate_Z_epistasis_by_pos(A1, num_muts1, KD1, KD1_err, pos1, KD_use1, cdr1_list, KD_lims)
-Z_by_pos3 = calculate_Z_epistasis_by_pos(A3, num_muts3, KD3, KD3_err, pos3, KD_use3, cdr3_list, KD_lims)
+Z_by_pos1_pos = calculate_Z_epistasis_by_pos(A1, num_muts1, KD1, KD1_std, pos1, KD_use1, KD_lims, epi_range=[0,np.inf])
+Z_by_pos3_pos = calculate_Z_epistasis_by_pos(A3, num_muts3, KD3, KD3_std, pos3, KD_use3, KD_lims, epi_range=[0,np.inf])
 
+Z_by_pos1_neg = calculate_Z_epistasis_by_pos(A1, num_muts1, KD1, KD1_std, pos1, KD_use1, KD_lims, epi_range=[-np.inf,0])
+Z_by_pos3_neg = calculate_Z_epistasis_by_pos(A3, num_muts3, KD3, KD3_std, pos3, KD_use3, KD_lims, epi_range=[-np.inf,0])
 if __name__ == '__main__':
     plt.ion()
     plt.close('all')
@@ -173,27 +165,8 @@ if __name__ == '__main__':
     cols = 2
     fig = plt.figure(figsize=figsize)
     ax = fig.add_axes([0.02,0.02,1.03,1.03])
-    #plt.subplots_adjust(
-    #    bottom = 0.1,
-    #    top = 0.99,
-    #    left = 0.14,
-    #    right = 0.82,
-    #    hspace = 0.1,
-    #    wspace = 0.4)
-
-    # Make a labler to add labels to subplots
-    #labeler = Labeler(xpad=0.02,ypad=0.01,fontsize=17)
-
-    # [left, bottom, width, height]
-    #position = ([0.0, 0, 0.5, 0.5])
-    #ax.set_position(position)
-    #ax = axes[1,0]
-    #labeler = Labeler(xpad=0.02,ypad=0.0,fontsize=17)
-    #labeler.label_subplot(ax,'C')
     cutoff = 3
     plot_Z_structure(cutoff, [28,100], [Z_by_pos1, Z_by_pos3], 20, ax)
-    #position = ([0.15, -0.08, 0.7, 0.7])
-    #ax.set_position(position)
     ax.axis('off')
     plt.savefig('epistasis_structure.pdf', dpi = 250)
     plt.close()

@@ -3,11 +3,12 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.ticker import MaxNLocator
 from data_preparation_transformed import get_data, get_f1, cdr1_list, cdr3_list
-from get_fit_PWM_transformation import get_transformations
+from get_fit_PWM_transformation import get_transformations, get_spline_transformations
 import numpy as np
 import pandas
 from labeler import Labeler
 from figure_3 import epi_p1,epi_p3, KD_average_epi_1, KD_average_epi_3, KD_epi_1, KD_epi_3, penalties1, Rsquare1, penalties3, Rsquare3
+import pdb
 logKD2PWM, PWM2logKD = get_transformations()
 med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM)
 
@@ -27,12 +28,8 @@ usethis1 = med_rep.index[usethis1]
 usethis3 = med_rep.index[usethis3]
 KD1 = np.array((med_rep['KD'].loc[usethis1]))
 KD3 = np.array((med_rep['KD'].loc[usethis3]))
-KD1_err = np.array((med_rep['KD_err'].loc[usethis1]))
-KD3_err = np.array((med_rep['KD_err'].loc[usethis3]))
 E1 = np.array((med_rep['E'].loc[usethis1]))
 E3 = np.array((med_rep['E'].loc[usethis3]))
-E1_err = np.array((med_rep['E_err'].loc[usethis1]))
-E3_err = np.array((med_rep['E_err'].loc[usethis3]))
 num_muts1 = np.array(med_rep['CDR1_muts'].loc[usethis1])
 num_muts3 = np.array(med_rep['CDR3_muts'].loc[usethis3])
 KD_use1 = ~np.array(med_rep['KD_exclude'].loc[usethis1])
@@ -99,17 +96,12 @@ if __name__=='__main__':
     labeler.label_subplot(ax,'B')
     print '# CDR1H muts affected: %i'%(usethis.sum())
     plot_epistasis(KD1[usethis], f1[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=1)
-    #ax.set_title('1H')
-    #plot_epistasis(f1[usethis], KD1[usethis], KD_lims, '1H', ax, plot_ytick=True, max_freq=1)
     ax.set_ylabel(r'PWM [M]')
-    #ax.set_xlabel(r'$K_D$ [M]')
-
-
+    
     ax = axes[2,0]
     labeler.label_subplot(ax,'C')
     plot_epistasis(KD1[usethis], f2[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=1)
-    #plot_epistasis(f2[usethis], KD1[usethis], KD_lims, '', ax,plot_ytick=True,plot_xtick=True, max_freq=1)
-    ax.set_xlabel(r'$K_D$ [M]')
+    ax.set_xlabel(r'$K_d$ [M]')
     ax.set_ylabel(r'pairwise [M]')
 
 
@@ -125,14 +117,10 @@ if __name__=='__main__':
     print '# CDR3H muts affected: %i'%((usethis).sum())
     ax = axes[1,1]
     plot_epistasis(KD3[usethis], f1[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=1)
-    #plot_epistasis(f1[usethis], KD3[usethis], KD_lims, '3H', ax, make_cbar=True,plot_ytick=False, max_freq=1)
-    #ax.set_title('3H')
-    #ax.set_xlabel(r'$K_D$ [M]')
-
+    
     ax = axes[2,1]
     plot_epistasis(KD3[usethis], f2[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=1)
-    #plot_epistasis(f2[usethis],KD3[usethis], KD_lims, '', ax, make_cbar=True,plot_ytick=False,plot_xtick=True, max_freq=1)
-    ax.set_xlabel(r'$K_D$ [M]')
+    ax.set_xlabel(r'$K_d$ [M]')
 
     labeler = Labeler(xpad=0.08,ypad=-0.0, fontsize=14)
 

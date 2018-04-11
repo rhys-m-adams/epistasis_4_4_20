@@ -3,9 +3,13 @@ import pdb
 from make_A import makeSparse
 import pandas
 from helper import *
+#this function provides a uniform set of data across the different analyses,
+#insuring consistency
 
-[seq_hash, seq, seq_cdr] = make_Sequence_Hash(
-    'data/CDR_library_July_5_2013_sequences.txt')
+#
+#[seq_hash, seq, seq_cdr] = make_Sequence_Hash(
+#    'data/CDR_library_July_5_2013_sequences.txt')
+
 cdr1_wtseq = 'TFSDYWMNWV'
 cdr3_wtseq = 'GSYYGMDYWG'
 cdr1_list = [s for s in cdr1_wtseq]
@@ -13,16 +17,27 @@ cdr3_list = [s for s in cdr3_wtseq]
 wt_aa = cdr1_wtseq + cdr3_wtseq
 
 
-def get_data(transform = lambda x:x):
-    rep1 = pandas.read_csv('data/replicate_1.csv')
-    rep2 = pandas.read_csv('data/replicate_2.csv')
-    rep3 = pandas.read_csv('data/replicate_3.csv')
+def get_data(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], prefix='data/'):
+    #get_data(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], prefix='data/')
+    #transform - a function, typically like should it be log transformed (default)
+    #or in KD (lambda x:10**x)
+    #exclude_boundary - return a list of whethter the value is at the boundary_exceeded
+    #KD_lims- define where the boundaries are
+    #prefix - where the data is stored
+    
+    #get triplicate measurements
+    rep1 = pandas.read_csv(prefix + 'replicate_1.csv')
+    rep2 = pandas.read_csv(prefix + 'replicate_2.csv')
+    rep3 = pandas.read_csv(prefix + 'replicate_3.csv')
 
     reps = [rep1, rep2, rep3]
-
-    KD_lims = [transform(-9.5), transform(-5)]
+    
+    #transform the limits to whatever unit we're working in
+    KD_lims = [transform(KD_lims[0]), transform(KD_lims[1])]
     exp_lims = [-1, 0.5]
-
+    
+    #start by calculating WT expression to normalize the expression, since this can 
+    #vary between triplicates
     wt_int = aa2int(wt_aa)
     hamming = lambda x, y: np.sum([a1!=a2 for a1, a2 in zip(x,y)])
     keys = []
@@ -36,48 +51,56 @@ def get_data(transform = lambda x:x):
     keys = set(keys)
     KDs = []
     exp = []
-    KD_err = []
-    exp_err = []
+    KD_std = []
+    exp_std = []
     CDR1_muts = []
     CDR3_muts = []
     boundary = []
+    fraction = []
     for key in keys:
+        #for each amino acid sequence get all of its KD and expression measurements
+        # over synonymous mutants and triplicates
         temp = []
         tempE = []
+        temp_fraction = []
         for ii, rep in enumerate(reps):
             if key in rep.index:
                 temp.extend(rep['fit_KD'].loc[rep.index.isin([key])].tolist())
                 tempE.extend((rep['expression'].loc[rep.index.isin([key])]/wt_mEs[ii]).tolist())
+                temp_fraction.append( np.sum(rep['fit_fraction'].loc[rep.index.isin([key])]) )
 
-
+        
+        #log transform data, note if its median is at the boundary
         temp = np.log10(np.array(temp))
         tempE = np.log10(np.array(tempE))
         usethis = np.isfinite(temp)
         temp = transform(temp[usethis])
-        med_boundary = (np.nanmedian(temp) == KD_lims[0]) or (np.nanmedian(temp) == KD_lims[1])
+        med_boundary = (np.nanmedian(temp) <= KD_lims[0]) or (np.nanmedian(temp) >= KD_lims[1]) and exclude_boundary
         nKD = np.sum(np.isfinite(temp))
         nE = np.sum(np.isfinite(tempE))
         out_KD = np.mean(temp)
         out_E = np.mean(tempE)
         if nKD>1:
             KDs.append(out_KD)
-            KD_err.append(np.nanstd(temp, ddof = 1)/np.sqrt(nKD))
+            KD_std.append(np.nanstd(temp, ddof = 1)/np.sqrt(nKD))#record KD sample error as standard deviation
             boundary.append(med_boundary)
         else:
             KDs.append(np.nan)
-            KD_err.append(np.nan)
+            KD_std.append(np.nan)
             boundary.append(med_boundary)
         if nE>1:
             exp.append(out_E)
-            exp_err.append(np.nanstd(tempE, ddof = 1)/np.sqrt(nE))
+            exp_std.append(np.nanstd(tempE, ddof = 1)/np.sqrt(nE))#record Expression sample error as standard deviation
         else:
             exp.append(np.nan)
-            exp_err.append(np.nan)
-
+            exp_std.append(np.nan)
+        
+        
         CDR1_muts.append(hamming(key[:10], wt_aa[:10]))
         CDR3_muts.append(hamming(key[10:], wt_aa[10:]))
+        fraction.append(np.mean(temp_fraction))
 
-    out = pandas.DataFrame({'KD':KDs, 'E':exp,'KD_err':KD_err, 'E_err':exp_err, 'KD_exclude':boundary, 'CDR1_muts':CDR1_muts, 'CDR3_muts':CDR3_muts}, index=keys)
+    out = pandas.DataFrame({'KD':KDs, 'E':exp,'KD_std':KD_std, 'E_std':exp_std, 'KD_exclude':boundary, 'CDR1_muts':CDR1_muts, 'CDR3_muts':CDR3_muts, 'fraction':fraction}, index=keys)
     lib_seq = np.array([aa2int(s) for s in keys])
     pos = np.array([aa2int(s) - wt_int for s in keys])
     A2, A = makeSparse(lib_seq, wt_int, 20)
@@ -107,8 +130,6 @@ def get_data_ind(transform = lambda x:x):
     keys = set(keys)
     KDs = []
     exp = []
-    KD_err = []
-    exp_err = []
     CDR1_muts = []
     CDR3_muts = []
     boundary = []
@@ -160,15 +181,12 @@ def get_f1(A, num_muts, val, wt_val, limit=[]):
     return f1, x
 
 
-def get_null(transform = lambda x:x):
+def get_null(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5]):
     rep1 = pandas.read_csv('data/replicate_1.csv')
     rep2 = pandas.read_csv('data/replicate_2.csv')
     rep3 = pandas.read_csv('data/replicate_3.csv')
 
     all_reps = [rep1, rep2, rep3]
-
-    wt_nt = seq[1] + comp_rev(seq[0])
-    wt_aa = nt2aa(wt_nt)
     wt_int = aa2int(wt_aa)
     hamming = lambda x, y: np.sum([a1!=a2 for a1, a2 in zip(x,y)])
     keys = []
@@ -180,12 +198,6 @@ def get_null(transform = lambda x:x):
 
     wt_mEs = np.array(wt_mEs)
     keys = set(keys)
-    KDs = []
-    exp = []
-    KD_err = []
-    exp_err = []
-    CDR1_muts = []
-    CDR3_muts = []
 
     Z = []
     ZE = []
@@ -204,9 +216,9 @@ def get_null(transform = lambda x:x):
         if np.sum(np.isfinite(temp)) == 0:
             continue
 
-        usethis = np.where(np.sum(np.isfinite(temp),axis=0)>0)[0]
+        usethis = np.where(np.sum(np.isfinite(temp),axis=0) > 0)[0]
         for ind in usethis:
-            if (np.nanmedian(temp[:,ind], axis=0)==-5) or (np.nanmedian(temp[:,ind], axis=0)==-9.5):
+            if (np.nanmedian(temp[:,ind], axis=0) <= KD_lims[0]) or (np.nanmedian(temp[:,ind], axis=0) >= KD_lims[1]) and exclude_boundary:
                 temp[:, ind] = np.nan
 
         usethis = np.isfinite(temp)
@@ -225,6 +237,9 @@ def get_null(transform = lambda x:x):
         for ii in range(0, num_syn-1):
             for jj in range(ii+1, num_syn):
                 pooled = (KD_S[ii]**2/nKD[ii] + KD_S[jj]**2/nKD[jj])
+                if pooled == 0:
+                    continue
+                
                 Z.append( (out_KD[ii]-out_KD[jj])/np.sqrt(pooled))
                 Z.append( -(out_KD[ii]-out_KD[jj])/np.sqrt(pooled))
                 pooled = (E_S[ii]**2/nE[ii] + E_S[jj]**2/nE[jj])

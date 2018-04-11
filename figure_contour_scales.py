@@ -34,8 +34,9 @@ KD = np.array(med_rep['KD'])
 
 wt_val = KD[num_muts==0]
 f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
+PWM2logKD = lambda x:x
 plot_epistasis(KD*1e6, f1*1e6, num_muts, np.array(KD_lims)*1e6, ax, plot_ytick=True, logscale=False, max_freq=1, make_cbar=False)
-ax.set_xlabel(r'$K_D$, [M]')
+ax.set_xlabel(r'$K_d$, [M]')
 ax.set_ylabel(r'PWM [M]')
 ax.set_xticks([0,2,4,6,8,10])
 ax.set_yticks([0,2,4,6,8,10])
@@ -50,7 +51,7 @@ KD = np.array(med_rep['KD'])
 wt_val = KD[num_muts==0]
 f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
 plot_epistasis(KD, f1, num_muts, KD_lims, ax, plot_ytick=True, max_freq=1, logscale=True, make_cbar=True)
-ax.set_xlabel(r'$K_D$')
+ax.set_xlabel(r'$K_d$')
 ax.set_ylabel(r'PWM [M]')
 labeler.label_subplot(ax,'B')
 

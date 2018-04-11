@@ -54,8 +54,8 @@ usethis1 = med_rep.index[usethis1]
 usethis3 = med_rep.index[usethis3]
 KD1 = np.array((med_rep['KD'].loc[usethis1]))
 KD3 = np.array((med_rep['KD'].loc[usethis3]))
-KD1_err = np.array((med_rep['KD_err'].loc[usethis1])) + 1e-10
-KD3_err = np.array((med_rep['KD_err'].loc[usethis3])) + 1e-10
+KD1_std = np.array((med_rep['KD_std'].loc[usethis1])) + 1e-10
+KD3_std = np.array((med_rep['KD_std'].loc[usethis3])) + 1e-10
 
 plt.ion()
 plt.close('all')
@@ -73,12 +73,12 @@ figsize=(3.5,3.8)
 fig = plt.figure(figsize=figsize)
 ax = fig.add_axes([0.25,0.15,0.5,0.8])
 #labeler = Labeler(xpad=-0.02,ypad=-0.12,fontsize=17)
-CDR1 = plot_KD_sign_epistasis(A1, KD1, KD1_err, AA1, '1H', 28, 'ALL', epistasis='beneficial')
-CDR3 = plot_KD_sign_epistasis(A3, KD3, KD3_err, AA3, '3H', 90, 'ALL', epistasis='beneficial')
+CDR1 = plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'ALL', epistasis='beneficial')
+CDR3 = plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'ALL', epistasis='beneficial')
 
 #labeler.label_subplot(ax,'A')
-CDR1_del = plot_KD_sign_epistasis(A1, KD1, KD1_err, AA1, '1H', 28, 'ALL', ax=ax, make_colorbar=False, epistasis='deleterious', y_offset=4)
-CDR3_del = plot_KD_sign_epistasis(A3, KD3, KD3_err, AA3, '3H', 90, 'ALL', ax=ax, make_colorbar=True, epistasis='deleterious')
+CDR1_del = plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'ALL', ax=ax, make_colorbar=False, epistasis='deleterious', y_offset=4)
+CDR3_del = plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'ALL', ax=ax, make_colorbar=True, epistasis='deleterious')
 pandas.concat([CDR1, CDR3, CDR1_del, CDR3_del]).to_csv('S1_table_sign_epistasis.csv')
 #ax.set_ylim([-1.8,7])
 plt.savefig('deleterious_sign_epistasis.pdf')
@@ -86,7 +86,7 @@ plt.close()
 
 KD_table = open('./CDR1H_sign_epistasis.tex', 'w')
 header = '''\\begin{center}
-\\begin{tabular}{ | l | l | l | l | l | l | l | l | l | l |}
+\\begin{tabular}{ | l | l | l | l | l | l | l |}
 \\hline\n
 domain &
 \multicolumn{1}{|p{2cm}|}{\centering \# of corresponding, catastraphic single mutants} &
@@ -94,17 +94,19 @@ domain &
 \multicolumn{1}{|p{2cm}|}{\centering \# candidate mutants } &
 \multicolumn{1}{|p{2cm}|}{\centering \# of mutants with sign epistasis (obs/exp)} &
 \multicolumn{1}{|p{2cm}|}{\centering \# of mutants with reciprocal sign epistasis (obs/exp)} &
-\multicolumn{1}{|p{2cm}|}{\centering \# of viable mutants with sign epistasis (obs/exp)} &
-\multicolumn{1}{|p{2cm}|}{\centering \# of viable mutants with reciprocal sign epistasis (obs/exp)} &
-\multicolumn{1}{|p{2cm}|}{\centering \# of sign epistatic mutants with $K_D <$ WT (obs/exp)}
+\multicolumn{1}{|p{2cm}|}{\centering \# of viable mutants with sign epistasis (obs/exp)} 
   \\\\ \\hline \n'''
 KD_table.write(header)
-plot_KD_sign_epistasis(A1, KD1, KD1_err, AA1, '1H', 28, 'NOR', fid=KD_table)
-plot_KD_sign_epistasis(A1, KD1, KD1_err, AA1, '1H', 28, 'XOR', fid=KD_table)
-plot_KD_sign_epistasis(A1, KD1, KD1_err, AA1, '1H', 28, 'NAND', fid=KD_table)
-plot_KD_sign_epistasis(A1, KD1, KD1_err, AA1, '1H', 28, 'AND', fid=KD_table)
-plot_KD_sign_epistasis(A1, KD1, KD1_err, AA1, '1H', 28, 'ALL', fid=KD_table)
-plot_KD_sign_epistasis(A1, KD1, KD1_err, AA1, '1H', 28, 'ALL', epistasis='deleterious', fid=KD_table)
+#plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'NOR', fid=KD_table)
+#plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'XOR', fid=KD_table)
+KD_table.write('''$^A$''')
+plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'NAND', fid=KD_table)
+KD_table.write('''$^B$''')
+plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'AND', fid=KD_table)
+KD_table.write('''$^C$''')
+plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'ALL', fid=KD_table)
+KD_table.write('''$^D$''')
+plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'ALL', epistasis='deleterious', fid=KD_table)
 
 footer = '''    \\end{tabular} \n
 \\end{center}'''
@@ -113,7 +115,7 @@ KD_table.close()
 
 KD_table = open('./CDR3H_sign_epistasis.tex', 'w')
 header = '''\\begin{center}
-\\begin{tabular}{ | l | l | l | l | l | l | l | l | l | l |}
+\\begin{tabular}{ | l | l | l | l | l | l | l |}
 \\hline\n
 domain &
 \multicolumn{1}{|p{2cm}|}{\centering \# of catastrophic mutations} &
@@ -121,18 +123,20 @@ domain &
 \multicolumn{1}{|p{2cm}|}{\centering \# candidate mutants } &
 \multicolumn{1}{|p{2cm}|}{\centering \# of mutants with sign epistasis (obs/exp)} &
 \multicolumn{1}{|p{2cm}|}{\centering \# of mutants with reciprocal sign epistasis (obs/exp)} &
-\multicolumn{1}{|p{2cm}|}{\centering \# of viable mutants with sign epistasis (obs/exp)} &
-\multicolumn{1}{|p{2cm}|}{\centering \# of viable mutants with reciprocal sign epistasis (obs/exp)} &
-\multicolumn{1}{|p{2cm}|}{\centering \# of sign epistatic mutants with $K_D <$ WT (obs/exp)}
+\multicolumn{1}{|p{2cm}|}{\centering \# of viable mutants with sign epistasis (obs/exp)} 
   \\\\ \\hline \n'''
 
 KD_table.write(header)
-plot_KD_sign_epistasis(A3, KD3, KD3_err, AA3, '3H', 90, 'NOR', fid=KD_table)
-plot_KD_sign_epistasis(A3, KD3, KD3_err, AA3, '3H', 90, 'XOR', fid=KD_table)
-plot_KD_sign_epistasis(A3, KD3, KD3_err, AA3, '3H', 90, 'NAND', fid=KD_table)
-plot_KD_sign_epistasis(A3, KD3, KD3_err, AA3, '3H', 90, 'AND', fid=KD_table)
-plot_KD_sign_epistasis(A3, KD3, KD3_err, AA3, '3H', 90, 'ALL', fid=KD_table)
-plot_KD_sign_epistasis(A3, KD3, KD3_err, AA3, '3H', 90, 'ALL', epistasis='deleterious', fid=KD_table)
+#plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'NOR', fid=KD_table)
+#plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'XOR', fid=KD_table)
+KD_table.write('''$^A$''')
+plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'NAND', fid=KD_table)
+KD_table.write('''$^B$''')
+plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'AND', fid=KD_table)
+KD_table.write('''$^C$''')
+plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'ALL', fid=KD_table)
+KD_table.write('''$^D$''')
+plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'ALL', epistasis='deleterious', fid=KD_table)
 footer = '''    \\end{tabular} \n
 \\end{center}'''
 KD_table.write(footer)
