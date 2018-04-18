@@ -12,6 +12,10 @@ This installed cvxopt=1.1.8, emcee=2.2.1, and svgutils=0.2.0. At the time of sub
 ```
 conda install matplotlib=2.0.2
 ```
+I made a beeswarm plot, which can be installed by pip
+```
+pip install pybeeswarm
+```
 
 Additionally, I installed pymol on MacOS as
 
