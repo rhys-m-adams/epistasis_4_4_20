@@ -34,7 +34,7 @@ def plot_transformation(x, y, lims, ax, xname):
 
     ##############################
     ind = np.argsort(x)
-    ax.semilogx(10**x[ind], y[ind], lw=2, c=[0,0,0], label='Ideal transform', zorder=10)
+    ax.semilogx(10**x[ind], y[ind], lw=2, c=[0,0,0], label='Ideal', zorder=10)
 
     ax.legend(loc='best', scatterpoints=1, numpoints=1, borderaxespad=0., handlelength=1, handletextpad=0.5, frameon=False)
     ax.set_ylabel(r'$E$')
@@ -58,54 +58,78 @@ def plot_scan(alphas, objective, ax, full_height=True):
 
 
 if __name__ == '__main__':
-    mpl.rcParams['font.size'] = 10
-    mpl.font_manager.FontProperties(family = 'Helvetica')
-    mpl.rcParams['pdf.fonttype'] = 42
-
     med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data_ind()
     KD = np.array(med_rep['KD'])
-
+    num_points = 50
+    alphas = np.logspace(-2,6, num_points)
+    x, y, alphas, objective = monotonic_fit(A, KD, KD_lims, alphas, name='CDR_KD_spline', already_fit=True, random_seed=0)
     labeler = Labeler(xpad=0.07,ypad=0.02,fontsize=14)
     plt.ion()
     plt.close('all')
-    figsize=(3.5,7)
+    figsize=(7.3,7)
     rows = 3
-    cols = 1
+    cols = 4
     fig, axes = plt.subplots(rows,cols,figsize=figsize)
     plt.subplots_adjust(
         bottom = 0.07,
         top = 0.94,
-        left = 0.2,
-        right = 0.75,
+        left = 0.1,
+        right = 0.9,
         hspace = 0.6,
-        wspace = 0.4)
+        wspace = 0.1)
+    mpl.rcParams['font.size'] = 10
+    mpl.font_manager.FontProperties(family = 'Helvetica')
+    mpl.rcParams['pdf.fonttype'] = 42
+    for ii, rep_ind in enumerate([None, 0,1,2]):
+        
 
-    num_points = 50
-    alphas = np.logspace(-2,6, num_points)
-    x, y, alphas, objective = monotonic_fit(A, KD, KD_lims, alphas, name='CDR_KD_spline', already_fit=True, random_seed=0)
-    ax = axes[0]
-    plot_scan(alphas, objective, ax)
-    ax.set_xlabel(r'$\alpha$')
-    ax.set_ylabel(r'cross validated $R^2$')
-    labeler.label_subplot(ax,'A')
+        med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data_ind(replicate_use=rep_ind)
+        KD = np.array(med_rep['KD'])
 
-    ax = axes[1]
-    plot_transformation(x, y, KD_lims, ax, xname=r'$K_d$ [M]')
-    labeler.label_subplot(ax,'B')
+        num_points = 50
+        alphas = np.logspace(-2,6, num_points)
+        x, y, alphas, objective = monotonic_fit(A, KD, KD_lims, alphas, name='CDR_KD_spline_%i'%ii, already_fit=True, random_seed=0)
+        ax = axes[0, ii]
+        plot_scan(alphas, objective, ax)
+        ax.set_xlabel(r'$\alpha$')
+        ax.set_ylabel(r'cross validated $R^2$')
+        if ii==0:
+            labeler.label_subplot(ax,'A')
+            ax.set_title('Replicate average')
+        else:
+            ax.set_title('Replicate %i'%(ii))
+            ax.set_yticks([])
+            ax.set_ylabel('')
+            
+        ax = axes[1, ii]
+        plot_transformation(x, y, KD_lims, ax, xname=r'$K_d$ [M]')
+        if ii==0:
+            labeler.label_subplot(ax,'B')
+        else:
+            ax.set_yticks([])
+            ax.set_ylabel('')
+        
+        
+        ax = axes[2, ii]
+        if ii==0:
+            labeler.label_subplot(ax,'C')
+        
+        
+        PWM2logKD = get_spline_transformations()[0]
+        med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(PWM2logKD, replicate_use=rep_ind)
+        num_muts = np.array(med_rep['CDR1_muts']) + np.array(med_rep['CDR3_muts'])
+        KD = np.array(med_rep['KD'])
 
-    ax = axes[2]
-    labeler.label_subplot(ax,'C')
-    PWM2logKD = get_spline_transformations()[0]
-    med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(PWM2logKD)
-    num_muts = np.array(med_rep['CDR1_muts']) + np.array(med_rep['CDR3_muts'])
-    KD = np.array(med_rep['KD'])
+        wt_val = KD[num_muts==0]
+        f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
+        plot_epistasis(KD, f1, num_muts, KD_lims, ax, plot_ytick=(ii==3), max_freq=1, logscale=False, make_cbar=(ii==3), custom_axis= [-0.2,0.1,0.4,0.7])
 
-    wt_val = KD[num_muts==0]
-    f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
-    plot_epistasis(KD, f1, num_muts, KD_lims, ax, plot_ytick=True, max_freq=1, logscale=False, make_cbar=True, custom_axis= [-0.2,0.1,0.4,0.7])
-
-    ax.set_xlabel(r'$E$')
-    ax.set_ylabel(r'$E_{\rm{PWM}}$')
+        ax.set_xlabel(r'$E$')
+        if ii!=0:
+            ax.set_yticks([])
+            ax.set_ylabel('')
+        else:
+            ax.set_ylabel(r'$E_{\rm{PWM}}$')
 
     plt.savefig('figure_monotonic_transformation_fit.pdf')
     plt.close('all')

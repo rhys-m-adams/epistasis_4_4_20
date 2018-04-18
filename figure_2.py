@@ -212,7 +212,7 @@ def query_FDR_p(single_cutoff, double_cutoff):
     return single, double
 
 
-def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logical_operator, ax=None, make_colorbar=False, out ={}, fid=None, epistasis='beneficial', y_offset=0, PWM2logKD=lambda x:x):
+def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logical_operator, ax=None, make_colorbar=False, out ={}, fid=None, epistasis='beneficial', y_offset=0, PWM2logKD=lambda x:x, cdf_cutoff=0.95):
     summary, wt_val = prepare_X_Z(A, val, val_std, AA, AA_pos_offset)
     first_size = summary.shape[0]
     cutoff = logKD2PWM(-6) - wt_val
@@ -233,7 +233,7 @@ def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logic
         allowable = np.isfinite(summary['h1']) & np.isfinite(summary['h2'])
         num_catastrophic = '$0-2$'
 
-    cutoff = norm.ppf(0.95)
+    cutoff = norm.ppf(cdf_cutoff)
     if epistasis == 'deleterious':
         summary['Z1'] *= -1
         summary['Z2'] *= -1

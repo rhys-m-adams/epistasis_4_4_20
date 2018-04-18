@@ -17,7 +17,7 @@ cdr3_list = [s for s in cdr3_wtseq]
 wt_aa = cdr1_wtseq + cdr3_wtseq
 
 
-def get_data(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], prefix='data/'):
+def get_data(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], prefix='data/', replicate_use=None):
     #get_data(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], prefix='data/')
     #transform - a function, typically like should it be log transformed (default)
     #or in KD (lambda x:10**x)
@@ -31,7 +31,8 @@ def get_data(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], p
     rep3 = pandas.read_csv(prefix + 'replicate_3.csv')
 
     reps = [rep1, rep2, rep3]
-    
+    if not (replicate_use is None):
+        reps = [reps[replicate_use]]
     #transform the limits to whatever unit we're working in
     KD_lims = [transform(KD_lims[0]), transform(KD_lims[1])]
     exp_lims = [-1, 0.5]
@@ -80,19 +81,17 @@ def get_data(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], p
         nE = np.sum(np.isfinite(tempE))
         out_KD = np.mean(temp)
         out_E = np.mean(tempE)
+        KDs.append(out_KD)
+        exp.append(out_E)
         if nKD>1:
-            KDs.append(out_KD)
             KD_std.append(np.nanstd(temp, ddof = 1)/np.sqrt(nKD))#record KD sample error as standard deviation
             boundary.append(med_boundary)
         else:
-            KDs.append(np.nan)
             KD_std.append(np.nan)
             boundary.append(med_boundary)
         if nE>1:
-            exp.append(out_E)
             exp_std.append(np.nanstd(tempE, ddof = 1)/np.sqrt(nE))#record Expression sample error as standard deviation
         else:
-            exp.append(np.nan)
             exp_std.append(np.nan)
         
         
@@ -107,13 +106,15 @@ def get_data(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], p
     return out, pos, A, list(keys), A2, KD_lims, exp_lims
 
 
-def get_data_ind(transform = lambda x:x):
+def get_data_ind(transform = lambda x:x, replicate_use=None):
     rep1 = pandas.read_csv('data/replicate_1.csv')
     rep2 = pandas.read_csv('data/replicate_2.csv')
     rep3 = pandas.read_csv('data/replicate_3.csv')
 
     reps = [rep1, rep2, rep3]
-
+    if not (replicate_use is None):
+        reps = [reps[replicate_use]]
+    
     KD_lims = [transform(-9.5), transform(-5)]
     exp_lims = [-1, 0.5]
 
@@ -181,12 +182,15 @@ def get_f1(A, num_muts, val, wt_val, limit=[]):
     return f1, x
 
 
-def get_null(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5]):
+def get_null(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], replicate_use=None):
     rep1 = pandas.read_csv('data/replicate_1.csv')
     rep2 = pandas.read_csv('data/replicate_2.csv')
     rep3 = pandas.read_csv('data/replicate_3.csv')
 
     all_reps = [rep1, rep2, rep3]
+    if not (replicate_use is None):
+        all_reps = [all_reps[replicate_use]]
+    
     wt_int = aa2int(wt_aa)
     hamming = lambda x, y: np.sum([a1!=a2 for a1, a2 in zip(x,y)])
     keys = []
