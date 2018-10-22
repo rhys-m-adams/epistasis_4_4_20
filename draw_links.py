@@ -30,7 +30,7 @@ def draw_links(selection1="(pk1)",selection2="(pk2)",color=None,color2=None,radi
 
   if type(color) is str:
     try:
-      tup_color = map(float, color.replace('(','').replace(')','').split(','))
+      tup_color = list(map(float, color.replace('(','').replace(')','').split(',')))
     except ValueError:
 #    print "converting color %s to list" % (color)
       tup_color = list(cmd.get_color_tuple(color))
@@ -43,7 +43,7 @@ def draw_links(selection1="(pk1)",selection2="(pk2)",color=None,color2=None,radi
   if type(color2) is str:
 #    print "converting color2 %s to list" % (color2)
     try:
-      tup_color = map(float, color.replace('(','').replace(')','').split(','))
+      tup_color = list(map(float, color.replace('(','').replace(')','').split(',')))
     except ValueError:
       tup_color2 = list(cmd.get_color_tuple(color2))
 #    print "Conversion for ", color2," to ", tup_color2
@@ -58,11 +58,11 @@ def draw_links(selection1="(pk1)",selection2="(pk2)",color=None,color2=None,radi
 # check if pk1 and pk2 are requested and defined 
   if (selection1 == '(pk1)' and 'pk1' not in cmd.get_names("selections") or
       selection2 == '(pk2)' and 'pk2' not in cmd.get_names("selections")):
-    print "You must pick the atoms with 'pk1' and 'pk2' or specify a selection"
-    print cmd.get_names("selections")
+    print("You must pick the atoms with 'pk1' and 'pk2' or specify a selection")
+    print(cmd.get_names("selections"))
     sys.exit(2)
   if not selection1 or not selection2:
-    print "You must enter two residue selections"
+    print("You must enter two residue selections")
     sys.exit(1)
 
   m1 = cmd.get_model(selection1)
@@ -71,10 +71,10 @@ def draw_links(selection1="(pk1)",selection2="(pk2)",color=None,color2=None,radi
   coord2 = []
 
   if len(m1.atom) == 0:
-    print "Sorry, no atoms selected in selection 1: ", selection1
+    print("Sorry, no atoms selected in selection 1: ", selection1)
     sys.exit(1)
   elif len(m2.atom) == 0:
-    print "Sorry, no atoms selected in selection 2: ", selection2
+    print("Sorry, no atoms selected in selection 2: ", selection2)
     sys.exit(1)
 
   else:

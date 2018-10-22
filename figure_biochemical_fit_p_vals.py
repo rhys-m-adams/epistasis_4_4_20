@@ -49,10 +49,10 @@ if __name__=='__main__':
     plt.subplots_adjust(
         bottom = 0.07,
         top = 0.95,
-        left = 0.18,
-        right = 0.89,
+        left = 0.16,
+        right = 0.87,
         hspace = 0.6,
-        wspace = 0.6)
+        wspace = 0.7)
 
     # Make a labler to add labels to subplots
     labeler = Labeler(xpad=0.09,ypad=0.01,fontsize=14)
@@ -70,7 +70,7 @@ if __name__=='__main__':
     labeler.label_subplot(ax,'A')
 
     labeler = Labeler(xpad=0.09,ypad=0.0,fontsize=14)
-    print '1H base R^2: %f, biochemical R^2: %f'%(Rsquare1[0], np.max(Rsquare1))
+    print('1H base R^2: %f, biochemical R^2: %f'%(Rsquare1[0], np.max(Rsquare1)))
 
 
     ax = axes[0,1]
@@ -78,10 +78,11 @@ if __name__=='__main__':
     ax.semilogx(penalties3[usethis], Rsquare3[usethis])
     ax.set_xticks([1e-6,1e-4,1e-2])
     ax.set_yticks(np.arange(np.round(Rsquare3[usethis].min(),2),np.round(Rsquare3[usethis].max(),2),0.01))
+    ax.set_ylabel(r'$R^2$')
 
     ax.set_xlabel(r'$\lambda$ (penalty)')
     ax.set_title('3H')
-    print '3H base R^2: %f, biochemical R^2: %f'%(Rsquare3[0], np.max(Rsquare3))
+    print('3H base R^2: %f, biochemical R^2: %f'%(Rsquare3[0], np.max(Rsquare3)))
 
     f = (np.array(KD1)).flatten()
     ind_zero = np.where(np.array(num_muts1==0))[0]
@@ -94,13 +95,14 @@ if __name__=='__main__':
     finite_vals= np.isfinite(f2) & np.isfinite(KD1.flatten()) & (num_muts1>=2)
     ax = axes[1,0]
     labeler.label_subplot(ax,'B')
-    print '# CDR1H muts affected: %i'%(usethis.sum())
-    plot_epistasis(KD1[usethis], f1[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=1)
+    print('# CDR1H muts affected: %i'%(usethis.sum()))
+    plot_epistasis(KD1[usethis], f1[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=3, min_freq=1)
+    ax.set_xlabel(r'$K_d$ [M]')
     ax.set_ylabel(r'PWM [M]')
     
     ax = axes[2,0]
     labeler.label_subplot(ax,'C')
-    plot_epistasis(KD1[usethis], f2[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=1)
+    plot_epistasis(KD1[usethis], f2[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=3, min_freq=1)
     ax.set_xlabel(r'$K_d$ [M]')
     ax.set_ylabel(r'pairwise [M]')
 
@@ -114,12 +116,12 @@ if __name__=='__main__':
     f2[f2>KD_lims[1]] = KD_lims[1]
     usethis = (KD_epi_3.flatten()!=0) & np.isfinite(f2) & np.isfinite(KD3.flatten())
     finite_vals= np.isfinite(f2) & np.isfinite(KD3.flatten()) & (num_muts3>=2)
-    print '# CDR3H muts affected: %i'%((usethis).sum())
+    print('# CDR3H muts affected: %i'%((usethis).sum()))
     ax = axes[1,1]
-    plot_epistasis(KD3[usethis], f1[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=1)
+    plot_epistasis(KD3[usethis], f1[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=3, min_freq=1)
     
     ax = axes[2,1]
-    plot_epistasis(KD3[usethis], f2[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=1)
+    plot_epistasis(KD3[usethis], f2[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=3, min_freq=1)
     ax.set_xlabel(r'$K_d$ [M]')
 
     labeler = Labeler(xpad=0.08,ypad=-0.0, fontsize=14)
@@ -130,7 +132,7 @@ if __name__=='__main__':
     usethis = KD_average_epi_1.flatten()!=0
     p1 = epi_p1.flatten()[usethis]
     p1[p1<1e-30] = 1e-30
-    ax.plot(range(p1.shape[0]), np.log10(np.sort(p1)))
+    ax.plot(list(range(p1.shape[0])), np.log10(np.sort(p1)))
     #ax.axhline(np.log10(np.sort(p1))[-1],c=[0.3,0.3,0.3])
 
     ax.xaxis.set_major_locator(MaxNLocator(4))
@@ -149,7 +151,7 @@ if __name__=='__main__':
     p3 = epi_p3.flatten()[usethis]
     p3[p3<1e-30] = 1e-30
 
-    ax.plot(range(p3.shape[0]), np.log10(np.sort(p3)))
+    ax.plot(list(range(p3.shape[0])), np.log10(np.sort(p3)))
     #ax.axhline(np.log10(np.sort(p3))[-1],c=[0.3,0.3,0.3])
     ax.xaxis.set_major_locator(MaxNLocator(4))
     ax.set_yticks([])
@@ -158,6 +160,7 @@ if __name__=='__main__':
     ax.set_xlim([0,p3.shape[0]-1])
     ax.set_aspect((p3.shape[0]-1)/5.)
     ax.set_xlabel('parameter')
+    ax.set_ylabel('posterior')
     #ax.set_title('3H')
 
     plt.savefig('figure_biochemical_fit_pvals.pdf')

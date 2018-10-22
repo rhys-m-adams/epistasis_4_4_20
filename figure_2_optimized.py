@@ -62,7 +62,7 @@ if __name__ == '__main__':
     Z_by_pos3 = calculate_Z_epistasis_by_pos(A3, num_muts3, KD3, KD3_std, pos3, KD_use3, KD_lims)
 
 
-    print 'kolmogorov smirnov test of normality for log KD null distribution: %f'%(kstest(x,'norm')[1])
+    print('kolmogorov smirnov test of normality for log KD null distribution: %f'%(kstest(x,'norm')[1]))
 
     plt.ion()
     plt.close('all')
@@ -107,9 +107,9 @@ if __name__ == '__main__':
     CDR3_del = plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'ALL', ax=ax, make_colorbar=True, epistasis='beneficial', PWM2logKD=PWM2logKD)
     CDR1_pos = plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'ALL', make_colorbar=False, epistasis='deleterious', y_offset=4, PWM2logKD=PWM2logKD)
     CDR3_pos = plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'ALL', make_colorbar=True, epistasis='deleterious', PWM2logKD=PWM2logKD)
-    print 'beneficial epistasis, 1H:%i, 3H:%i'%(CDR1_del.shape[0],CDR3_del.shape[0])
-    print 'deleterious epistasis, 1H:%i, 3H:%i'%(CDR1_pos.shape[0],CDR3_pos.shape[0])
-    print 'total: %i'%(CDR1_del.shape[0]+CDR3_del.shape[0]+CDR1_pos.shape[0]+CDR3_pos.shape[0])
+    print('beneficial epistasis, 1H:%i, 3H:%i'%(CDR1_del.shape[0],CDR3_del.shape[0]))
+    print('deleterious epistasis, 1H:%i, 3H:%i'%(CDR1_pos.shape[0],CDR3_pos.shape[0]))
+    print('total: %i'%(CDR1_del.shape[0]+CDR3_del.shape[0]+CDR1_pos.shape[0]+CDR3_pos.shape[0]))
 
     plt.savefig('figure_2_optimized.pdf')
     plt.close()

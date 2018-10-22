@@ -5,7 +5,7 @@ import pandas
 import pdb
 import matplotlib.pyplot as plt
 from helper import *
-from scipy.stats import norm, levene, kstest, mannwhitneyu, binom
+from scipy.stats import norm, levene, kstest, mannwhitneyu
 from labeler import Labeler
 from data_preparation_transformed import get_data, get_f1, get_null, wt_aa
 from get_fit_PWM_transformation import get_transformations
@@ -13,16 +13,16 @@ from matplotlib import gridspec
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
-
+from beeswarm import beeswarm
 logKD2PWM, PWM2logKD = get_transformations()
-med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM)
+med_rep_all, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM)
 
 mpl.rcParams['font.size'] = 10
 mpl.font_manager.FontProperties(family = 'Helvetica')
 mpl.rcParams['pdf.fonttype'] = 42
 
-usethis = np.array(med_rep['CDR1_muts'] == 0) & np.array(med_rep['CDR3_muts'] == 0)
-wt_val = np.array(med_rep['KD'])[usethis]
+usethis = np.array(med_rep_all['CDR1_muts'] == 0) & np.array(med_rep_all['CDR3_muts'] == 0)
+wt_val = np.array(med_rep_all['KD'])[usethis]
 white_point = (PWM2logKD(wt_val)+9.5)/4.5
 affinity_maturation = (-6+9.5)/4.5
 cdict1 = {'red':((0.,1.,1.),
@@ -140,7 +140,7 @@ def plot_connected_dm(representative, ax, plot_title, make_colorbar, y_offset, w
 
     ax.set_ylim([-1.8,5.8])
     ax.set_xlim([-2.6,2.6])
-    ax.text(0.,1.9 + y_offset, plot_title, ha='center')#plt.colorbar(cax)
+    ax.text(0.,1.7 + y_offset, plot_title, ha='center')#plt.colorbar(cax)
 
 
 def prepare_X_Z(A, val, val_std, AA, offset):
@@ -177,7 +177,6 @@ def prepare_X_Z(A, val, val_std, AA, offset):
     out['pos2'] = double_mut_pos[:,1]+offset
     out['AA1'] = [aa[ind] for aa,ind in zip(AA2, double_mut_pos[:,0])]
     out['AA2'] = [aa[ind] for aa,ind in zip(AA2, double_mut_pos[:,1])]
-    out['p_F_greater_WT'] = norm(0,1).cdf((out['F']-wt_val)/out['F_std'])
 
     return out, wt_val
 
@@ -213,7 +212,7 @@ def query_FDR_p(single_cutoff, double_cutoff):
     return single, double
 
 
-def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logical_operator, ax=None, make_colorbar=False, out ={}, fid=None, epistasis='beneficial', y_offset=0, PWM2logKD=lambda x:x, cdf_cutoff=0.951):
+def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logical_operator, ax=None, make_colorbar=False, out ={}, fid=None, epistasis='beneficial', y_offset=0, PWM2logKD=lambda x:x):
     summary, wt_val = prepare_X_Z(A, val, val_std, AA, AA_pos_offset)
     first_size = summary.shape[0]
     cutoff = logKD2PWM(-6) - wt_val
@@ -234,8 +233,7 @@ def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logic
         allowable = np.isfinite(summary['h1']) & np.isfinite(summary['h2'])
         num_catastrophic = '$0-2$'
 
-    cutoff = norm.ppf(cdf_cutoff)
-    print('Z-score cutoff: %f'%cutoff)
+    cutoff = norm.ppf(0.95)
     if epistasis == 'deleterious':
         summary['Z1'] *= -1
         summary['Z2'] *= -1
@@ -245,7 +243,7 @@ def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logic
 
     p_improved = (PWM2logKD(summary['F']) < wt_val).sum() / float(summary.shape[0])
     p_viable = (PWM2logKD(summary['F']) < -6).sum() / float(summary.shape[0])
-    
+
     p_allowable = allowable.sum() / float(first_size)
     single, double = query_FDR_p(-cutoff, cutoff)
     expected_num_r_s_e = np.max([first_size * double * p_allowable, 0.01])
@@ -261,21 +259,7 @@ def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logic
     total_count = summary.shape[0]
 
     summary = summary.loc[((summary['Z_sign1'] < -cutoff) & (summary['Z1'] > cutoff) ) | ((summary['Z_sign2'] < -cutoff) & (summary['Z2'] > cutoff))]
-    if (cutoff == 0 ):
-        pval = np.zeros((summary.shape[0], 2))
-    else:
-        pval = [[query_FDR_p(summary['Z_sign1'].loc[variant], summary['Z1'].loc[variant])[0],query_FDR_p(summary['Z_sign2'].loc[variant], summary['Z2'].loc[variant])[0]] for variant in summary.index]
-    pval = np.array(pval)
-    m = first_size
-    
-    cutoff = benjamin_hochberg(pval.flatten(), m, 0.05)
-    print((np.sum(pval<cutoff, axis=1)==0).sum())
-    adjusted_p_val = pval * 0.05 / cutoff
-    summary['p1'] = pval[:,0]
-    summary['p2'] = pval[:,1]
-    summary['Benjamin_hochberg_FDR0.05_adjusted_p_val1'] = adjusted_p_val[:,0]
-    summary['Benjamin_hochberg_FDR0.05_adjusted_p_val2'] = adjusted_p_val[:,1]
-    
+
     num_s_e = summary.shape[0]
     num_r_s_e = summary.loc[((summary['Z_sign1'] < -cutoff) & (summary['Z1'] > cutoff)) & ((summary['Z_sign2'] < -cutoff) & (summary['Z2'] > cutoff))].shape[0]
 
@@ -285,16 +269,9 @@ def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logic
     num_viable_r_s_e = viable.loc[((viable['Z_sign1'] < -cutoff) & (viable['Z1'] > cutoff)) & ((viable['Z_sign2'] < -cutoff) & (viable['Z2'] > cutoff))].shape[0]
 
     super_sig = (PWM2logKD(summary['F']) < wt_val).sum()
-    print(logical_operator)
-    print('Probability of sign epistasis')
-    print(1-binom.cdf(num_s_e, total_count, expected_num_s_e/total_count))
-    print('Probability of reciprocal sign epistasis')
-    print(1-binom.cdf(num_r_s_e, total_count, expected_num_r_s_e/total_count))
-    #num_viable
-    #expected_num_s_e
-    #num_s_e
     if not(fid == None):
         fid.write('%s & %s & %s & %i & %i/%.2f  & %i/%.2f & %i/%.2f \\\\ \\hline \n'%(title_name, num_catastrophic, epistasis, total_count, num_s_e, expected_num_s_e, num_r_s_e, expected_num_r_s_e, num_viable, expected_num_viable))
+
     if ax != None:
         for_show = pandas.DataFrame(summary)
         usethis = []
@@ -375,7 +352,7 @@ def plot_Z_epistasis_by_pos(deviance, in_max, offset, cutoff, ax, curr_title=Non
 
     print('epistasis enrichment in OPT (%s domain) by position p-val: %f (mann whitney test)'%(curr_title, mannwhitneyu(pop1,pop2)[1]))
     print('number of optimized mutant pairs with epistatic Z>3: %i'%np.sum(np.array(pop1)>3))
-    print('number of epistatic hotspots Z>3: %i'%int(np.nansum(deviance[np.isfinite(deviance)]>3)/2))
+    print('number of epistatic hotspots Z>3: %i'%int(np.nansum(np.array(deviance)>3)/2))
     deviance = np.ma.array (deviance, mask=np.isnan(deviance))
     opt = np.array(opt, dtype=float)+0.5
     for ii in range(len(opt)):
@@ -458,10 +435,8 @@ def plot_epistasis_Z(A, num_muts, val, val_std, Z_null, name, title_name, lims, 
         Z_null[Z_null<=-20] = -20
         Z_null[Z_null>=20] = 20
         x = np.linspace(-20, 20, 31)
-        y, xpos = np.histogram(Z, bins=x)
-        y = np.array(y, dtype=float) / np.trapz(y,(x[1:]+x[:-1])/2.)
-        null_y, xpos = np.histogram(Z_null, bins=x)
-        null_y = np.array(null_y, dtype=float) / np.trapz(null_y, (x[1:]+x[:-1])/2.)
+        y, xpos = np.histogram(Z, bins=x, normed=1)
+        null_y, xpos = np.histogram(Z_null, bins=x, normed=1)
         x = np.linspace(-20, 20, 30)
         high_x = np.linspace(-20, 20, 10000)
         lw = 1
@@ -490,6 +465,8 @@ def plot_epistasis_Z(A, num_muts, val, val_std, Z_null, name, title_name, lims, 
 
         ax.set_ylim([0,0.6])
         ax.set_xlim([-20,20])
+    
+    return np.std(Z)
 
 def plot_sign_epistasis_example(ax):
     ax.plot([0,1],[0, 1], c=[0.3,0.3,0.3], lw=2)
@@ -530,11 +507,10 @@ def plot_sign_epistasis_example(ax):
     ax.plot([1,2],[1,0.66], c=[1.,0,1], lw=2)
     ax.set_yticks([])
     ax.set_xticks([0,1,2])
-    #ax.set_xticklabels(['WT', 'single\nmutant','double\nmutant'])
-    ax.set_xlabel('Number of mutations')
+    ax.set_xticklabels(['WT', 'single\nmutant','double\nmutant'])
     ax.set_ylabel('binding\nenergy')
     ax.set_ylim([-0.6,2.1])
-    ax.set_xlim([-0.16,2.26])
+    ax.set_xlim([-0.16,2.16])
     def simpleaxis(ax):
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
@@ -544,89 +520,145 @@ def plot_sign_epistasis_example(ax):
     simpleaxis(ax)
 
 if __name__ == '__main__':
-    usethis1 = np.where(med_rep['CDR3_muts']==0)[0]
-    usethis3 = np.where(med_rep['CDR1_muts']==0)[0]
-    A1 = A[usethis1]
-    A3 = A[usethis3]
-    AA1= [AA[ii] for ii in usethis1]
-    AA3= [AA[ii] for ii in usethis3]
-    
-    pos1 = pos[usethis1]
-    pos3 = pos[usethis3]
-    pos1 = pos1[:,:10]
-    pos3 = pos3[:,10:]
-    usethis1 = med_rep.index[usethis1]
-    usethis3 = med_rep.index[usethis3]
-    KD1 = np.array((med_rep['KD'].loc[usethis1]))
-    KD3 = np.array((med_rep['KD'].loc[usethis3]))
-    KD1_std = np.array((med_rep['KD_std'].loc[usethis1]))
-    KD3_std = np.array((med_rep['KD_std'].loc[usethis3]))
-    num_muts1 = np.array(med_rep['CDR1_muts'].loc[usethis1])
-    num_muts3 = np.array(med_rep['CDR3_muts'].loc[usethis3])
-    KD_use1 = ~np.array(med_rep['KD_exclude'].loc[usethis1])
-    KD_use3 = ~np.array(med_rep['KD_exclude'].loc[usethis3])
-
-    xK, yK, xE, yE, Z, ZE = get_null(transform = logKD2PWM)
-    x = np.sort((Z-np.mean(Z))/np.std(Z))
-    num_muts = np.array(med_rep[['CDR1_muts','CDR3_muts']]).sum(axis=1).flatten()
-    KD = np.array(med_rep['KD']).flatten()
-    KD_std = np.array(med_rep['KD_std']).flatten()
-    KD_use = ~np.array(med_rep['KD_exclude'])
-    
-    plot_epistasis_Z(A[KD_use], num_muts[KD_use], KD[KD_use], KD_std[KD_use], Z, '', 'All', KD_lims, None)
-    
-    opt1 = [2, 3]
-    opt3 = [1, 2, 6, 8]
-    
-    Z_by_pos1 = calculate_Z_epistasis_by_pos(A1, num_muts1, KD1, KD1_std, pos1, KD_use1, KD_lims)
-    Z_by_pos3 = calculate_Z_epistasis_by_pos(A3, num_muts3, KD3, KD3_std, pos3, KD_use3, KD_lims)
-    
-    print('kolmogorov smirnov test of normality for log KD null distribution: %f'%(kstest(x,'norm')[1]))
-    
-    plt.ion()
-    plt.close('all')
-    
-    figsize=(7.3*0.7,3.3)
-    fig, axes = plt.subplots(figsize=figsize)
-    gs = gridspec.GridSpec(19, 41)
+    figsize=(7.3,9)
+    rows = 5
+    cols = 3
+    fig, axes = plt.subplots(rows, cols, figsize=figsize)
     plt.subplots_adjust(
-        bottom = 0.13,
+        bottom = 0.04,
         top = 0.95,
-        left = 0.11,
-        right = 0.99,
-        hspace = 0,
-        wspace = 0)
+        left = 0.2,
+        right = 0.9,
+        hspace = 0.6,
+        wspace = 0.6)
     
     # Make a labler to add labels to subplots
-    labeler = Labeler(xpad=0.04,ypad=-0.01,fontsize=14)
-    
-    ax = plt.subplot(gs[13:19,0:20])
-    plot_epistasis_Z(A1[KD_use1], num_muts1[KD_use1], KD1[KD_use1], KD1_std[KD_use1], Z, r'', '1H', KD_lims, ax, make_ytick=True, plot_null=True)
-    labeler.label_subplot(ax,'B')
-    
-    plot_epistasis_Z(A3[KD_use3], num_muts3[KD_use3], KD3[KD_use3], KD3_std[KD_use3], Z, r'Z', '3H', KD_lims, ax, make_ytick=True)
-    ax.set_yscale('symlog',linthreshy=1e-2, linscaley=0.2)
-    
-    ax = plt.subplot(gs[0:8,27:36])
-    labeler.label_subplot(ax,'C')
+    labeler = Labeler(xpad=0.04,ypad=0.0,fontsize=14)
+    std1 = []
+    std3 = []
+    pos_Z1 = []
+    pos_Z3 = []
+    std_null = []
+    for ii, rep_ind in enumerate([None, 0,1,2]):
+        print(' ')
+        print(ii)
+        med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM, replicate_use=rep_ind)
+        med_rep['KD_std'] = med_rep_all['KD_std'].loc[med_rep.index]
+        med_rep['KD_exclude'] = med_rep_all['KD_exclude'].loc[med_rep.index]
+        usethis1 = np.where(med_rep['CDR3_muts']==0)[0]
+        usethis3 = np.where(med_rep['CDR1_muts']==0)[0]
+        A1 = A[usethis1]
+        A3 = A[usethis3]
+        AA1= [AA[jj] for jj in usethis1]
+        AA3= [AA[jj] for jj in usethis3]
+        
+        pos1 = pos[usethis1]
+        pos3 = pos[usethis3]
+        pos1 = pos1[:,:10]
+        pos3 = pos3[:,10:]
+        usethis1 = med_rep.index[usethis1]
+        usethis3 = med_rep.index[usethis3]
+        KD1 = np.array((med_rep['KD'].loc[usethis1]))
+        KD3 = np.array((med_rep['KD'].loc[usethis3]))
+        KD1_std = np.array((med_rep['KD_std'].loc[usethis1]))
+        KD3_std = np.array((med_rep['KD_std'].loc[usethis3]))
+        num_muts1 = np.array(med_rep['CDR1_muts'].loc[usethis1])
+        num_muts3 = np.array(med_rep['CDR3_muts'].loc[usethis3])
+        KD_use1 = ~np.array(med_rep['KD_exclude'].loc[usethis1])
+        KD_use3 = ~np.array(med_rep['KD_exclude'].loc[usethis3])
 
-    plot_Z_epistasis_by_pos(Z_by_pos1, 20, 28, 3, ax, curr_title = '1H', opt=opt1, make_ylabel=True, make_colorbar=True)
+        xK, yK, xE, yE, Z, ZE = get_null(transform = logKD2PWM)
+        ax = axes[ii, 0]
+        temp = plot_epistasis_Z(A1[KD_use1], num_muts1[KD_use1], KD1[KD_use1], KD1_std[KD_use1], Z, r'', '1H', KD_lims, ax, make_ytick=True, plot_null=True)
+        if ii!=0:
+            std1.append(temp)
+            std_null.append(np.std(Z))
+        else:
+            ave_std1=temp
+            null_std = np.std(Z)
+            labeler.label_subplot(ax,'A')
+                
+        temp = plot_epistasis_Z(A3[KD_use3], num_muts3[KD_use3], KD3[KD_use3], KD3_std[KD_use3], Z, r'Z', '3H', KD_lims, ax, make_ytick=True)
+        if ii != 0:
+            std3.append(temp)
+        else:
+            ave_std3=temp
+        ax.set_yscale('symlog',linthreshy=1e-2, linscaley=0.2)
+        ax.set_ylim([0,4])
+        Z_by_pos1 = calculate_Z_epistasis_by_pos(A1, num_muts1, KD1, KD1_std, pos1, KD_use1, KD_lims)
+        Z_by_pos3 = calculate_Z_epistasis_by_pos(A3, num_muts3, KD3, KD3_std, pos3, KD_use3, KD_lims)
+        
+        if ii ==0:
+            ax.text(-.55, 0.5, 'Replicate\naverage', ha='right', transform=ax.transAxes)
+            ind1 = np.argsort(Z_by_pos1.flatten())[::2]
+            ind3 = np.argsort(Z_by_pos3.flatten())[::2]
+            ct1 = '1H'
+            ct3 = '3H'
+        else:
+            ax.text(-.55, 0.5, 'replicate %i'%ii, ha='right', transform=ax.transAxes)
+            ct1 = ''
+            ct3 = ''
+        
+        ax = axes[ii, 1]
+        if ii==0:
+            labeler.label_subplot(ax,'B')
+        pos_Z1.append(Z_by_pos1.flatten()[ind1])
+        pos_Z3.append(Z_by_pos3.flatten()[ind3])
+        
+        opt1 = [2, 3]
+        opt3 = [1, 2, 6, 8]
+        plot_Z_epistasis_by_pos(Z_by_pos1, 20, 28, 3, ax, curr_title = ct1, opt=opt1, make_ylabel=True)
+        
+        ax = axes[ii, 2]        
+        if ii==0:
+            labeler.label_subplot(ax,'C')
+        
+        plot_Z_epistasis_by_pos(Z_by_pos3, 20, 100, 3, ax, curr_title = ct3, opt=opt3, make_colorbar=True)
+        
+        
+    ax = axes[4, 0]
+    labeler.label_subplot(ax,'D')        
     
-    ax.set_xlabel(' ')
-    #labeler.label_subplot(ax,'C')
+    #for sn in std_null:
+    #    ax.axhline(sn, c='#E69A1A')
     
-    ax = plt.subplot(gs[11:19,27:36])
-    plot_Z_epistasis_by_pos(Z_by_pos3, 20, 100, 3, ax, curr_title = '3H', opt=opt3, make_ylabel=True, make_colorbar=True)
-    
-    ax = plt.subplot(gs[0:8,0:9])
-    plot_sign_epistasis_example(ax)
-    labeler.label_subplot(ax,'A')
-    
-    #ax = plt.subplot(gs[0:15,26:])
-    #labeler = Labeler(xpad=-0.01,ypad=-0.0, fontsize=14)
-    #labeler.label_subplot(ax,'D')
-    #CDR1_del = plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'ALL', ax=ax, make_colorbar=False, epistasis='beneficial', y_offset=4)
-    #CDR3_del = plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'ALL', ax=ax, make_colorbar=True, epistasis='beneficial')
+    ax.axhline(null_std, c='#864A0A',lw=4, label='error')
+    ax.plot([-.25,0.25], [ave_std1, ave_std1], c=[0,0,0.4], lw=4, label='1H')
+    ax.plot([.75,1.25], [ave_std3, ave_std3], c=[0.4,0,0.], lw=4, label='3H')
+    ax.set_ylabel(r'$\sigma(Z)$')
+    ax.set_xticks([0,1])
+    ax.set_xticklabels(['1H', '3H'])
+    leg = ax.legend(loc='upper left', frameon=False, borderaxespad=0., handlelength=1, handletextpad=0.5)
+    beeswarm([std1, std3], positions=[0,1], method='swarm', ax=ax, s=40, col=['#0000CC', '#CC0000'])
+    ax.set_ylim([0,4])
+    ax.set_xlim([-2.5,1.5])
 
-    plt.savefig('figure_2.pdf')
+    ax = axes[4, 1]
+    labeler.label_subplot(ax,'E')        
+
+    for ii in range(1,4):
+        ax.scatter(list(range(len(pos_Z1[ii]))), pos_Z1[ii],c='#0000CC')
+    ax.axhline(null_std, c='#864A0A',lw=4, label='error')
+    ax.plot(list(range(len(pos_Z1[0]))), pos_Z1[0],c=[0,0,0.4], lw=4)
+    ax.set_ylabel(r'$\langle Z^{2} \rangle^{\frac{1}{2}}$')
+    ax.set_xlabel('position pair (sorted)')
+    ax.set_ylim([0,21])
+    ax.set_xticks([])
+
+    #leg = ax.legend(loc='upper left', frameon=False, borderaxespad=0., handlelength=1, handletextpad=0.5)
+    #beeswarm([std1, std3], positions=[0,1], method='swarm', ax=ax, s=40, col=['#0000CC', '#CC0000'])
+    #ax.set_ylim([0,4])
+    #ax.set_xlim([-2.5,1.5])
+    ax = axes[4, 2]
+    labeler.label_subplot(ax,'F')  
+    for ii in range(1,4):
+        ax.scatter(list(range(len(pos_Z3[ii]))), pos_Z3[ii],c='#CC0000')
+    ax.axhline(null_std, c='#864A0A',lw=4, label='error')
+    ax.plot(list(range(len(pos_Z3[0]))), pos_Z3[0],c=[0.4,0,0.], lw=4)
+
+    ax.set_ylabel(r'$\langle Z^{2} \rangle^{\frac{1}{2}}$')
+    ax.set_xlabel('position pair (sorted)')
+    ax.set_ylim([0,21])
+    ax.set_xticks([])
+    plt.savefig('figure_error_replicates.pdf')
     plt.close()

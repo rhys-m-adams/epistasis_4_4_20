@@ -60,8 +60,8 @@ num_muts3 = np.array(med_rep['CDR3_muts'].loc[usethis3])
 KD_use1 = ~np.array(med_rep['KD_exclude'].loc[usethis1])
 KD_use3 = ~np.array(med_rep['KD_exclude'].loc[usethis3])
 
-print '# of triple mutants, CDR1: %i, CDR3:%i'%(np.sum(num_muts1==3),np.sum(num_muts3==3))
-print '# of triple mutants within boundary, CDR1: %i, CDR3:%i'%(np.sum(KD_use1[num_muts1==3]),np.sum(KD_use3[num_muts3==3]))
+print('# of triple mutants, CDR1: %i, CDR3:%i'%(np.sum(num_muts1==3),np.sum(num_muts3==3)))
+print('# of triple mutants within boundary, CDR1: %i, CDR3:%i'%(np.sum(KD_use1[num_muts1==3]),np.sum(KD_use3[num_muts3==3])))
 mkdir('./biochemical_fit_optimized')
 
 if __name__ == '__main__':
@@ -103,20 +103,20 @@ if __name__ == '__main__':
         pandas.DataFrame(epi_sigma3).to_csv('./biochemical_fit_optimized/epi_sigma3.csv')
         pandas.DataFrame(epi_p3).to_csv('./biochemical_fit_optimized/epi_p3.csv')
 
-    print '# of found epistatic terms from biochemical model, CDR1H: %i, CDR3H: %i'%(np.sum(KD_average_epi_1!=0),np.sum(KD_average_epi_3!=0))
+    print('# of found epistatic terms from biochemical model, CDR1H: %i, CDR3H: %i'%(np.sum(KD_average_epi_1!=0),np.sum(KD_average_epi_3!=0)))
     A_opt1 = make_linear_epistasis_model(['TFGHYWMNWV'], cdr1_list)
     A_opt3 = make_linear_epistasis_model(['GASYGMEYLG'], cdr3_list)
     epi_contributions1 = (A_opt1 * (KD_average_epi_1.flatten())).flatten()
     epi_contributions3 = (A_opt3 * (KD_average_epi_3.flatten())).flatten()
     usethis1 = np.where(epi_contributions1)[0]
     usethis3 = np.where(epi_contributions3)[0]
-    print 'Epistatic contribution to OPT CDR1H domain: '+ str(epi_contributions1[usethis1])
-    print 'Epistatic contribution to OPT CDR3H domain: '+ str(epi_contributions3[usethis3])
-    print 'Epistatic contribution to OPT CDR1H domain: '+ str(np.sum(epi_contributions1[usethis1]))
-    print 'Epistatic contribution to OPT CDR3H domain: '+ str(np.sum(epi_contributions3[usethis3]))
+    print('Epistatic contribution to OPT CDR1H domain: '+ str(epi_contributions1[usethis1]))
+    print('Epistatic contribution to OPT CDR3H domain: '+ str(epi_contributions3[usethis3]))
+    print('Epistatic contribution to OPT CDR1H domain: '+ str(np.sum(epi_contributions1[usethis1])))
+    print('Epistatic contribution to OPT CDR3H domain: '+ str(np.sum(epi_contributions3[usethis3])))
 
-    print 'sum |epistatic contribution| CDR1: %f'%(np.sum(np.abs(KD_average_epi_1)))
-    print 'sum |epistatic contribution| CDR3: %f'%(np.sum(np.abs(KD_average_epi_3)))
+    print('sum |epistatic contribution| CDR1: %f'%(np.sum(np.abs(KD_average_epi_1))))
+    print('sum |epistatic contribution| CDR3: %f'%(np.sum(np.abs(KD_average_epi_3))))
     plt.ion()
     plt.close('all')
     figsize=(7.3*0.7,4)
@@ -139,7 +139,7 @@ if __name__ == '__main__':
         return out
 
 
-    ax = plt.subplot(gs[0:5,0:(num_x/2)])
+    ax = plt.subplot(gs[0:5,0:int(num_x/2)])
     CDR1_pos_connections = plot_connections(get_sign_model(KD_average_epi_1,1) * (epi_p1<(5e-2)), cdr1_list, 28,0., ax,0)
     ax.axis('off')
     # Make a labler to add labels to subplots
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     ax.set_xlim([-1.3,3.8])
     ax.axis('off')
 
-    ax = plt.subplot(gs[6:,0:(num_x/2)])
+    ax = plt.subplot(gs[6:,0:int(num_x/2)])
     CDR1_neg_connections = plot_connections(get_sign_model(KD_average_epi_1,-1) * (epi_p1<(5e-2)), cdr1_list, 28,0., ax,0)
     ax.axis('off')
     labeler.label_subplot(ax,'B')
@@ -168,22 +168,22 @@ if __name__ == '__main__':
         legobj.set_linewidth(4)
     #ax.axis('off')
     
-    ax3 = plt.subplot(gs[1:4,(num_x*3/5+1):])
-    ax4 = plt.subplot(gs[6:9,(num_x*3/5+1):])
+    ax3 = plt.subplot(gs[1:4,int(num_x*3/5+1):])
+    ax4 = plt.subplot(gs[6:9,int(num_x*3/5+1):])
     cdr1_results = pandas.read_table('cdr1h_optimized.csv', sep=',', header=0)
-    print 'CDR1H'
+    print('CDR1H')
     cdr1_results = cdr1_results.apply(pandas.to_numeric)
     vol_0, surf_0 = get_stats(cdr1_results.dropna())
     summary_plot(surf_0, vol_0, ax3, ax4, colors=['#000080','#8080FF'], title ='1H', ylabels=True)
 
     labeler = Labeler(xpad=0.09,ypad=0.01, fontsize=14)
 
-    plt.subplot(gs[0,(num_x*3/5+1):]).set_visible(False)
-    labeler.label_subplot(plt.subplot(gs[0,(num_x*3/5+1):]),'C')
+    plt.subplot(gs[0,int(num_x*3/5+1):]).set_visible(False)
+    labeler.label_subplot(plt.subplot(gs[0,int(num_x*3/5+1):]),'C')
     labeler.label_subplot(ax4,'D')
 
     cdr3_results = pandas.read_table('cdr3h_optimized.csv', sep=',', header=0)
-    print 'CDR3H'
+    print('CDR3H')
     cdr3_results = cdr3_results.apply(pandas.to_numeric)
 
     vol_0, surf_0 = get_stats(cdr3_results.dropna())

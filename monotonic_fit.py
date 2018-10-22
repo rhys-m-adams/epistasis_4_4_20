@@ -44,7 +44,7 @@ def make_residual_matrix(m, my_b, y_inds=None, y_shape=None):
     # This function is similar to m_to_M, but it can also be used to create a sparse PWM
     # so that C.dot(x) = Ehat
     if y_inds is None:
-        y_inds = range(len(m))
+        y_inds = list(range(len(m)))
     if y_shape is None:
         y_shape = len(m)
     coords = [m_to_M_coord(ii, my_b) for ii in m]
@@ -57,7 +57,7 @@ def make_residual_matrix(m, my_b, y_inds=None, y_shape=None):
 def get_data_splits(num_points, k=10):
     #get_data_splits(num_points, k=10)
     #randomly split data with num_points of elements into k pieces for cross validation
-    indices = range(num_points)
+    indices = list(range(num_points))
     random.shuffle(indices)
     split_at = np.array(np.linspace(0, num_points, k + 1), dtype=int)
     data_set = [indices[split_at[ii]:split_at[ii + 1]] for ii in range(k)]
@@ -193,7 +193,7 @@ def fit_energy(M, my_b, C, wt_val, a, suppress_out):
         new_exceeded_lower = (exceeded_lower | ((constrained_f1) <= f_min)) & ((raw_f1) <= f_min).flatten()
         count += 1
         if not suppress_out:
-            print 'upper: %i / %i, lower: %i / %i disagreed/out of bounds'%((new_exceeded_upper != exceeded_upper).sum(), new_exceeded_upper.sum(),(new_exceeded_lower != exceeded_lower).sum(), new_exceeded_lower.sum())
+            print('upper: %i / %i, lower: %i / %i disagreed/out of bounds'%((new_exceeded_upper != exceeded_upper).sum(), new_exceeded_upper.sum(),(new_exceeded_lower != exceeded_lower).sum(), new_exceeded_lower.sum()))
         if count >10:
             boundary_exceeded = False
         if ((new_exceeded_upper != exceeded_upper).sum()==0) and ((new_exceeded_lower != exceeded_lower).sum()==0):
@@ -264,7 +264,7 @@ def scan_fits(A, vals, lims, alphas, suppress_out, grid_size=100):
         g = 0
         for ii in range(len(data_set)):
             if not suppress_out:
-                print 'rotate set'
+                print('rotate set')
             #remove the test set out of the first data subsets
             test_set = data_set.pop(0)
             training_set = list(itertools.chain(*data_set))
@@ -298,7 +298,7 @@ def scan_fits(A, vals, lims, alphas, suppress_out, grid_size=100):
             best_x = fit_x
             best_alpha = a
         if not suppress_out:
-            print 'alpha: %f  SSE: %f  time: %f '%(a, g, time.time() - t0)
+            print('alpha: %f  SSE: %f  time: %f '%(a, g, time.time() - t0))
 
     #calculate energies/best transformation and objective
     objective = np.array(objective).flatten()

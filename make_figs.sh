@@ -6,6 +6,7 @@ python figure_simulated_fit.py
 python figure_contour_scales.py
 python figure_1.py
 python figure_contour_scales_no_bound.py
+python figure_blosum.py
 
 #figure 2
 python figure_2.py
@@ -28,3 +29,4 @@ python figure_replicate_Z.py
 python figure_3.py
 python figure_biochemical_fit_p_vals.py
 python figure_3_optimal.py
+python figure_MJ.py

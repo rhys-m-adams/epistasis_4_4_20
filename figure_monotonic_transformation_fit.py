@@ -23,12 +23,12 @@ def plot_transformation(x, y, lims, ax, xname):
     y = y[usethis]
 
     A = np.vstack((10**x, np.ones(x.shape))).T
-    myf = np.linalg.lstsq(A, y)
+    myf = np.linalg.lstsq(A, y, rcond=-1)
     fx =  myf[0][0] * 10**x + myf[0][1]
 
     ##############################
     A = np.vstack((x, np.ones(x.shape))).T
-    myf = np.linalg.lstsq(A, y)
+    myf = np.linalg.lstsq(A, y, rcond=-1)
     fx =  myf[0][0] * x + myf[0][1]
     ax.plot(10**x, fx, label = r'$R^2$: %.2f'%(pearsonr(fx, y)[0]**2), lw=2, zorder=11,c=[1,0.3,0.3])
 
@@ -53,16 +53,19 @@ def plot_scan(alphas, objective, ax, full_height=True):
     if full_height:
         ax.set_ylim([0,1])
 
-    print 'Monotonic fit, R^2=%f'%( 1-objective[best_ind])
-    print 'Fully smoothed monotonic fit(i.e. straight line), R^2=%f'%(1-objective[-1])
+    print('Monotonic fit, R^2=%f'%( 1-objective[best_ind]))
+    print('Fully smoothed monotonic fit(i.e. straight line), R^2=%f'%(1-objective[-1]))
 
 
 if __name__ == '__main__':
     med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data_ind()
+    
     KD = np.array(med_rep['KD'])
+    num_muts = np.array((A!=0).sum(axis=1)).flatten()
     num_points = 50
     alphas = np.logspace(-2,6, num_points)
     x, y, alphas, objective = monotonic_fit(A, KD, KD_lims, alphas, name='CDR_KD_spline', already_fit=True, random_seed=0)
+    print('The correlation between optimized and linear Energy is %.3f'%pearsonr(x[num_muts==1], y[num_muts==1])[0]**2)
     labeler = Labeler(xpad=0.07,ypad=0.02,fontsize=14)
     plt.ion()
     plt.close('all')
@@ -74,7 +77,7 @@ if __name__ == '__main__':
         bottom = 0.07,
         top = 0.94,
         left = 0.1,
-        right = 0.9,
+        right = 0.88,
         hspace = 0.6,
         wspace = 0.1)
     mpl.rcParams['font.size'] = 10
@@ -88,7 +91,10 @@ if __name__ == '__main__':
 
         num_points = 50
         alphas = np.logspace(-2,6, num_points)
-        x, y, alphas, objective = monotonic_fit(A, KD, KD_lims, alphas, name='CDR_KD_spline_%i'%ii, already_fit=True, random_seed=0)
+        if ii==0:
+            x, y, alphas, objective = monotonic_fit(A, KD, KD_lims, alphas, name='CDR_KD_spline', already_fit=True, random_seed=0)
+        else:
+            x, y, alphas, objective = monotonic_fit(A, KD, KD_lims, alphas, name='CDR_KD_spline_%i'%ii, already_fit=True, random_seed=0)
         ax = axes[0, ii]
         plot_scan(alphas, objective, ax)
         ax.set_xlabel(r'$\alpha$')
@@ -102,6 +108,8 @@ if __name__ == '__main__':
             ax.set_ylabel('')
             
         ax = axes[1, ii]
+        
+
         plot_transformation(x, y, KD_lims, ax, xname=r'$K_d$ [M]')
         if ii==0:
             labeler.label_subplot(ax,'B')
@@ -114,7 +122,6 @@ if __name__ == '__main__':
         if ii==0:
             labeler.label_subplot(ax,'C')
         
-        
         PWM2logKD = get_spline_transformations()[0]
         med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(PWM2logKD, replicate_use=rep_ind)
         num_muts = np.array(med_rep['CDR1_muts']) + np.array(med_rep['CDR3_muts'])
@@ -122,7 +129,7 @@ if __name__ == '__main__':
 
         wt_val = KD[num_muts==0]
         f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
-        plot_epistasis(KD, f1, num_muts, KD_lims, ax, plot_ytick=(ii==3), max_freq=1, logscale=False, make_cbar=(ii==3), custom_axis= [-0.2,0.1,0.4,0.7])
+        plot_epistasis(KD, f1, num_muts, KD_lims, ax, plot_ytick=(ii==3), max_freq=4, min_freq=2, logscale=False, make_cbar=(ii==3), custom_axis= [-0.2,0.1,0.4,0.7])
 
         ax.set_xlabel(r'$E$')
         if ii!=0:

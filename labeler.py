@@ -1,4 +1,4 @@
-from __future__ import division
+
 import pdb
 import pylab
 import numpy as np

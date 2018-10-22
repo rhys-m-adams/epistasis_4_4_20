@@ -99,7 +99,7 @@ def plot_local(num_muts, AA_ind, name, num_J, seed_ID, boundary, energy_fun):
             scaling = 1
 
         num_sampled = 0
-        for subset in k_subsets(range(len(AA_ind)), ii):
+        for subset in k_subsets(list(range(len(AA_ind))), ii):
 
             if predicted_total >= numeric_cutoff:
                 fg_size = numeric_cutoff / num_subsets+1
@@ -154,4 +154,4 @@ A_heatmap3_2, E_heatmap3_2 = sub_heatmap2(pos3, num_muts3, KD3 - f1A, E3 - f1E, 
 A_heatmap3_2[~np.isfinite(A_heatmap3_2)]=0
 boundary = np.array([-6,-6.5,-7,-7.5,-8,-8.5,-9, -9.5])
 bound_energy = logKD2PWM(boundary) - A_wt
-plot_local(num_muts, range(10), out_name, num_J, seed_id, boundary, lambda x:energy_ind_fun2(x, bound_energy, A_heatmap3, E_heatmap3, A_heatmap3_2, E_heatmap3_2))
+plot_local(num_muts, list(range(10)), out_name, num_J, seed_id, boundary, lambda x:energy_ind_fun2(x, bound_energy, A_heatmap3, E_heatmap3, A_heatmap3_2, E_heatmap3_2))

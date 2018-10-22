@@ -1,5 +1,5 @@
 # epistasis_4_4_20
-This is the code used to create the figures in my preprint "Physical epistatic landscape of antibody binding affinity" (https://www.biorxiv.org/content/early/2017/12/11/232645). I ran this code using Python 2.7.13 from anaconda (https://www.anaconda.com/download/). This used scipy=0.19.1, numpy=1.13.1, pandas=0.20.3. I installed the additional programs
+This is the code used to create the figures in my preprint "Physical epistatic landscape of antibody binding affinity" (https://www.biorxiv.org/content/early/2017/12/11/232645). I ran this code using Python 3.6.6 from anaconda (https://www.anaconda.com/download/). In particular I used used scipy=1.0.1, numpy=1.14.5, pandas=0.20.3, and matplotlib=2.2.2. I installed the additional programs
 ```
 #monotonic fit requirement
 conda install -y -c conda-forge cvxopt
@@ -8,10 +8,8 @@ conda install -y -c astropy emcee
 #Merge Figure 1A,B with 1C,D
 conda install -y -c conda-forge svgutils
 ```
-This installed cvxopt=1.1.8, emcee=2.2.1, and svgutils=0.2.0. At the time of submission, I downgraded matplotlib to an earlier version
-```
-conda install matplotlib=2.0.2
-```
+This installed cvxopt=1.1.8, emcee=2.2.1, and svgutils=0.2.0. 
+
 I made a beeswarm plot, which can be installed by pip
 ```
 pip install pybeeswarm

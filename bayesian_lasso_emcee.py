@@ -39,7 +39,7 @@ def bayesian_lasso(A,y, penalty, start, burn_in=0, num_iterations=0, nwalkers=25
             ind = ind[0][0]
         else:
             ind = ac.shape[0]
-        myf = np.linalg.lstsq(np.array([range(1,ind+1)]).T, np.log(ac[:ind]))[0]
+        myf = np.linalg.lstsq(np.array([list(range(1,ind+1))]).T, np.log(ac[:ind]), rcond=-1)[0]
         sample_rate.append(int(np.ceil(-np.log(10)/myf)))
 
     #calculate the statistics with the sampling rate and return

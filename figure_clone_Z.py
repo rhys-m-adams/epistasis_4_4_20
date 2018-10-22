@@ -88,9 +88,9 @@ if __name__ == '__main__':
             Z.append((X-Y)/np.sqrt(SX+SY))
             Z_centered.append((X-Y - np.mean(res))/np.sqrt(SX+SY))
 
-    print 'residual mean: %f'%(np.mean(res))
-    print 'Clonal Z std:%f, kolmogorov test for normality: %f'%(np.std(Z), kstest(Z,'norm')[1])
-    print 'Average std:%f'%(np.mean(standard_deviations))
+    print('residual mean: %f'%(np.mean(res)))
+    print('Clonal Z std:%f, kolmogorov test for normality: %f'%(np.std(Z), kstest(Z,'norm')[1]))
+    print('Average std:%f'%(np.mean(standard_deviations)))
     plt.ion()
     plt.close('all')
 
@@ -109,8 +109,8 @@ if __name__ == '__main__':
     #ax.text(0.05,0.8,r'$\sigma=%.2f$'%np.std(Z),transform=ax.transAxes)
     ax.text(0.05,0.9,'KS-test: %.2f'%(kstest(Z,'norm')[1]),transform=ax.transAxes )
     ax.set_ylim([0,4])
-    ax.set_yticks(range(5))
-    ax.set_yticklabels(range(5))
+    ax.set_yticks(list(range(5)))
+    ax.set_yticklabels(list(range(5)))
     plt.legend(loc='upper right')
     ax.set_xlabel('clonal Z')
     ax.set_ylabel('frequency')

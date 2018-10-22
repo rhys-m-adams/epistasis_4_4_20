@@ -27,10 +27,22 @@ CDRs = 'TFSDYWMNWVGSYYGMDYWG'
 CDR_atoms = pandas.read_csv('./data/CDR13_positions.txt',  delimiter=r"\s+", header=None)
 
 #coordinates of sub-data sets
+fl_atoms = CDR_atoms.loc[CDR_atoms[0] == 'HETATM']  
 CDR_atoms = CDR_atoms.loc[CDR_atoms[5]==np.round(CDR_atoms[5])]
 CDR_index = CDR_atoms[5]
+not_backbone = CDR_atoms.loc[~CDR_atoms[2].isin(['C','O','N'])]
 
+ave_atoms = not_backbone.groupby([5]).mean()
+ave_atoms[5] = ave_atoms.index
 #CDR_atoms = CDR_atoms.loc[(~CDR_atoms[2].isin(['CA'])) | (CDR_atoms[3]=='GLY')]
-distances   = get_distances(CDR_atoms.loc[~CDR_atoms[2].isin(['C','O','N'])],CDR_list=np.unique(CDR_index))
+distances   = get_distances(not_backbone, CDR_list=np.unique(CDR_index))
 distances_a = get_distances(CDR_atoms.loc[CDR_atoms[2].isin(['CA'])], CDR_list=np.unique(CDR_index))
 distances_b = get_distances(CDR_atoms.loc[CDR_atoms[2].isin(['CB'])], CDR_list=np.unique(CDR_index))
+distances_ave = get_distances(ave_atoms, CDR_list = np.unique(CDR_index))
+
+CAs = CDR_atoms.loc[CDR_atoms[2].isin(['CA'])]
+CA_pos = CAs[[6,7,8]].values
+fl_pos = fl_atoms[[5,6,7]].values
+
+fl_d2 = np.array([np.min(np.sum((fl_pos - pos)**2, axis=1)) for pos in CA_pos])
+fl_d = np.sqrt(fl_d2)

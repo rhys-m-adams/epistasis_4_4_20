@@ -1,4 +1,4 @@
-from structure_connections import distances, distances_a, distances_b
+from structure_connections import distances, distances_a, distances_b, fl_d
 from figure_z_epistasis_pos import Z_by_pos1, Z_by_pos3, Z_by_pos1_neg, Z_by_pos3_neg, Z_by_pos1_pos, Z_by_pos3_pos
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,8 +25,9 @@ mpl.rcParams['pdf.fonttype'] = 42
 mpl.font_manager.FontProperties(family = 'Helvetica')
 
 figsize=(7.3,10)
-rows = 5
+rows = 6
 cols = 2
+
 fig, axes = plt.subplots(rows,cols,figsize=figsize)
 plt.subplots_adjust(
     bottom = 0.05,
@@ -68,6 +69,22 @@ for ii, distance in enumerate(distances):
     ax.set_xlabel(r'%s distance ($\AA$)'%(xnames[ii]))
     if ii==0:
         ax.set_title('3H')
+
+ax = axes[ii+1, 0]
+labeler.label_subplot(ax, chr(ord('A')+ii+1))
+
+plot_distance(fl_d[:10], np.sqrt(np.nanmean(Z_by_pos1**2, axis=0)), ax)
+ax.set_xlabel('min distance to fluorescein')
+ax.set_ylabel(r'$\langle Z_{\rm{epi}}^2 \rangle^{\frac{1}{2}}$')
+ax = axes[ii+1, 1]
+plot_distance(fl_d[10:], np.sqrt(np.nanmean(Z_by_pos3**2, axis=0)), ax)
+ax.set_xlabel('distance to fluorescein')
+ax.set_ylabel(r'$\langle Z_{\rm{epi}}^2 \rangle^{\frac{1}{2}}$')
+#ax.scatter()
+#print(spearmanr(fl_d[:10], np.nansum(Z_by_pos1, axis=0)))
+#ax = axes[ii+1,1]
+#ax.scatter(fl_d[10:], np.nansum(Z_by_pos3, axis=0))
+#print(spearmanr(fl_d[10:], np.nansum(Z_by_pos3, axis=0)))
 
 plt.savefig('distance_epistasis.pdf')
 plt.close()

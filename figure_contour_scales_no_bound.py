@@ -19,9 +19,9 @@ fig, axes = plt.subplots(rows,cols,figsize=figsize)
 plt.subplots_adjust(
     bottom = 0.07,
     top = 0.9,
-    left = 0.25,
-    right = 0.9,
-    hspace = 0.4,
+    left = 0.22,
+    right = 0.88,
+    hspace = 0.6,
     wspace = 0.6)
 
 # Make a labler to add labels to subplots
@@ -38,13 +38,13 @@ for ii, rep_ind in enumerate([None, 0,1,2]):
     wt_val = KD[num_muts==0]
     f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
     PWM2logKD = lambda x:x
-    plot_epistasis(KD*10, f1*10, num_muts, np.array(KD_lims)*10, ax, plot_ytick=True, logscale=False, max_freq=2, make_cbar=False)
-    if (ii==3):
-        ax.set_xlabel(r'$K_d$, [M]')
-        ax.set_xticks([0,2,4,6,8,10])
-    else:
-        ax.set_xlabel('')
-        ax.set_xticks([])
+    plot_epistasis(KD*10, f1*10, num_muts, np.array(KD_lims)*10, ax, plot_ytick=True, logscale=False,max_freq=3, min_freq=1, make_cbar=False)
+    #if (ii==3):
+    ax.set_xlabel(r'$K_d$, [M]')
+    ax.set_xticks([0,2,4,6,8,10])
+    #else:
+    #    ax.set_xlabel('')
+    #    ax.set_xticks([])
     
     ax.set_ylabel(r'PWM [M]')
     ax.set_yticks([0,2,4,6,8,10])
@@ -62,11 +62,11 @@ for ii, rep_ind in enumerate([None, 0,1,2]):
 
     wt_val = KD[num_muts==0]
     f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
-    plot_epistasis(KD, f1, num_muts, KD_lims, ax, plot_ytick=True, plot_xtick=(ii==3), max_freq=2, logscale=True, make_cbar=True)
-    ax.set_xticks([-11,-8,-5,-2])
-    if (ii==3):
-        ax.set_xlabel(r'$K_d$')
-        ax.set_xticklabels([r'$10^{%i}$'%power for power in [-11,-8,-5,-2]])
+    plot_epistasis(KD, f1, num_muts, KD_lims, ax, plot_ytick=True, plot_xtick=True, max_freq=3, min_freq=1, logscale=True, make_cbar=True)
+    ax.set_xticks([-11,-7,-3,0])
+    #if (ii==3):
+    ax.set_xlabel(r'$K_d$')
+    ax.set_xticklabels([r'$10^{%i}$'%power for power in [-11,-7,-3,0]])
  
     ax.set_ylabel(r'PWM [M]')
 

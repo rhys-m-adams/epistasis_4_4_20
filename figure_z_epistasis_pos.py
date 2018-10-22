@@ -37,7 +37,7 @@ def write_pymol_commands(deviance, cutoff, offset, in_max, fid):
                 #colormap(nameOfTheColormapYouWant)
                 fid.write('draw_links pk1, pk2, color='+str(color)+', radius=0.2\n')
                 count += 1
-    print 'domain at %i, num_sigificant at cutoff %f: %i'%(offset, cutoff, count)
+    print('domain at %i, num_sigificant at cutoff %f: %i'%(offset, cutoff, count))
 
 
 def fuzzy_patch(left, bottom, width, height):
@@ -89,7 +89,7 @@ def plot_Z_structure(cutoff, offsets, deviances, in_max, ax):
 
 
     delta = np.max([int(in_max/5),1])
-    ticks = range(0, 21, 4)
+    ticks = list(range(0, 21, 4))
     cbar = plt.colorbar(cax, cax=plt.gcf().add_axes(position), orientation='vertical', ticks=ticks)
     cbar.set_label(r'$\langle Z^2 \rangle^\frac{1}{2}$', labelpad=-10)
 

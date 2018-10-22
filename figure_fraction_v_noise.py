@@ -47,7 +47,7 @@ if __name__ == '__main__':
     
     myf = linregress(np.log10(x[usethis]), np.log10(y[usethis]))
     usethis = np.isfinite(x) & np.isfinite(y) & ~np.array(med_rep['KD_exclude']).flatten()
-    print 'average standard deviation: %f'%(np.mean(y[usethis]))
+    print('average standard deviation: %f'%(np.mean(y[usethis])))
     freq, xpos, ypos = np.histogram2d(x[usethis],y[usethis], bins=(np.logspace(-7,0,16),np.linspace(0,4.5,20)))
     cax = ax.pcolor(np.logspace(-7,0,15), np.linspace(0,4.5,19),freq.T+1e-1, norm = LogNorm(), vmin=0.5, vmax=1e3, cmap='bone_r')
     x = np.logspace(-7,0,1000)
@@ -60,5 +60,5 @@ if __name__ == '__main__':
     plt.legend()
     plt.savefig('figure_fraction_std.pdf')
     plt.close()
-    print myf
+    print(myf)
 

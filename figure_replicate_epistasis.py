@@ -65,8 +65,8 @@ if __name__ == '__main__':
     seqs1 = []
     seqs3 = []
     for ii, rep_ind in enumerate([None, 0,1,2]):
-        print ' '
-        print ii
+        print(' ')
+        print(ii)
         med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM, replicate_use=rep_ind)
         med_rep['KD_std'] = med_rep_all['KD_std'].loc[med_rep.index]
         med_rep['KD_exclude'] = med_rep_all['KD_exclude'].loc[med_rep.index]
@@ -213,8 +213,8 @@ if __name__ == '__main__':
     seqs1 = []
     seqs3 = []
     for ii, rep_ind in enumerate([None, 0,1,2]):
-        print ' '
-        print ii
+        print(' ')
+        print(ii)
         med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM, replicate_use=rep_ind)
         med_rep['KD_std'] = med_rep_all['KD_std'].loc[med_rep.index]
         med_rep['KD_exclude'] = med_rep_all['KD_exclude'].loc[med_rep.index]

@@ -4,11 +4,7 @@ from make_A import makeSparse
 import pandas
 from helper import *
 #this function provides a uniform set of data across the different analyses,
-#insuring consistency
-
-#
-#[seq_hash, seq, seq_cdr] = make_Sequence_Hash(
-#    'data/CDR_library_July_5_2013_sequences.txt')
+#ensuring consistency
 
 cdr1_wtseq = 'TFSDYWMNWV'
 cdr3_wtseq = 'GSYYGMDYWG'
@@ -49,7 +45,7 @@ def get_data(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], p
         wt_mEs.append(np.nanmedian(rep['expression'].loc[(rep['CDR1H_AA'] == cdr1_wtseq) & (rep['CDR3H_AA'] == cdr3_wtseq)]))
 
     wt_mEs = np.array(wt_mEs)
-    keys = set(keys)
+    keys = sorted(set(keys))
     KDs = []
     exp = []
     KD_std = []
@@ -128,7 +124,7 @@ def get_data_ind(transform = lambda x:x, replicate_use=None):
         wt_mEs.append(np.nanmedian(rep['expression'].loc[(rep['CDR1H_AA'] == cdr1_wtseq) & (rep['CDR3H_AA'] == cdr3_wtseq)]))
 
     wt_mEs = np.array(wt_mEs)
-    keys = set(keys)
+    keys = sorted(set(keys))
     KDs = []
     exp = []
     CDR1_muts = []
@@ -182,10 +178,10 @@ def get_f1(A, num_muts, val, wt_val, limit=[]):
     return f1, x
 
 
-def get_null(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], replicate_use=None):
-    rep1 = pandas.read_csv('data/replicate_1.csv')
-    rep2 = pandas.read_csv('data/replicate_2.csv')
-    rep3 = pandas.read_csv('data/replicate_3.csv')
+def get_null(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], replicate_use=None, prefix='data/'):
+    rep1 = pandas.read_csv(prefix + 'replicate_1.csv')
+    rep2 = pandas.read_csv(prefix + 'replicate_2.csv')
+    rep3 = pandas.read_csv(prefix + 'replicate_3.csv')
 
     all_reps = [rep1, rep2, rep3]
     if not (replicate_use is None):
@@ -201,7 +197,7 @@ def get_null(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], r
         wt_mEs.append(np.nanmedian(rep['expression'].loc[(rep['CDR1H_AA'] == cdr1_wtseq) & (rep['CDR3H_AA'] == cdr3_wtseq)]))
 
     wt_mEs = np.array(wt_mEs)
-    keys = set(keys)
+    keys = sorted(set(keys))
 
     Z = []
     ZE = []
@@ -257,7 +253,9 @@ def get_null(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], r
     hist_Z = np.array(Z)
     hist_Z[hist_Z<=-30] = -30
     hist_Z[hist_Z>=30] = 30
-    yK, xpos = np.histogram(Z, bins=x, normed=1)
+    yK, xpos = np.histogram(Z, bins=x)
+    yK = np.array(yK, dtype=float) / np.trapz(yK,(xpos[1:]+xpos[:-1])/2.)
+
     xK = np.linspace(-30, 30, 60)
 
     xE = np.linspace(-30, 30, 61)
@@ -268,6 +266,8 @@ def get_null(transform = lambda x:x, exclude_boundary=True, KD_lims=[-9.5,-5], r
     hist_Z[hist_Z<=-30] = -30
     hist_Z[hist_Z>=30] = 30
 
-    yE, xpos = np.histogram(hist_Z, bins=x, normed=1)
+    yE, xpos = np.histogram(hist_Z, bins=x)
+    yE = np.array(yE, dtype=float) / np.trapz(yE,(xpos[1:]+xpos[:-1])/2.)
+
     xE = np.linspace(-30, 30, 60)
     return xK, yK, xE, yE, Z, ZE

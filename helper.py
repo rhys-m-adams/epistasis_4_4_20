@@ -85,7 +85,7 @@ aa_int_dict={'A':0,
             'Y':19,
             '*':20}
     
-aa_keys=aa_int_dict.keys()
+aa_keys=list(aa_int_dict.keys())
 int_aa_dict={}
 for key in aa_keys:
     curr_int=aa_int_dict[key]
@@ -220,7 +220,7 @@ nt_codon_dict={'ATT':0,
                'TAA':61,
                'TAG':62,
                'TGA':63}
-codon_keys=nt_codon_dict.keys()
+codon_keys=list(nt_codon_dict.keys())
 int_ntcodon_dict={}
 for key in codon_keys:
     curr_int=nt_codon_dict[key]
@@ -450,3 +450,9 @@ syn_colors = {'R':[0.5,0.5,1],
                'V':[0,0.8,0.8],
                'W':[0.2,0.2,0.2],
                'K':[0,0,0.7]}
+
+def benjamin_hochberg(p, m, FDR):
+    pvals = np.sort(np.array(p))
+    tests = pvals<=((np.arange(len(p))+1)*FDR/m)
+    cutoff = pvals[np.max(np.where(tests)[0])] + 1e-6
+    return cutoff

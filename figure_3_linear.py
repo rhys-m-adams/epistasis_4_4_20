@@ -15,7 +15,6 @@ from bayesian_lasso_emcee import bayesian_lasso
 import itertools
 import errno
 import os
-from scipy.stats import norm
 
 
 def mkdir(path):
@@ -301,9 +300,6 @@ def get_stats(in_pd):
 
     vol_0 = pandas.DataFrame(vol_0)
     surf_0 = pandas.DataFrame(surf_0)
-    print(norm.cdf(-vol_0['dm2_dJ']/vol_0['sigma_dm2_dJ']))
-    print(norm.cdf(-surf_0['dm2_dJ']/surf_0['sigma_dm2_dJ']))
-    
     return vol_0, surf_0
 
 def fmt(x, pos):
@@ -341,7 +337,7 @@ def summary_plot(surf, vol, ax1, ax2, colors, title=[''], make_colorbar=False, y
         cax = ax.errorbar(10**boundary, y, yerr=ys, fmt='.', c=[0,0,0],markersize=0, capsize=0, zorder=21)
 
         ax.set_xscale('log')
-        ax.set_yscale('log')
+        #ax.set_yscale('log')
         scale_min = np.min(np.hstack((x,y)))
         scale_max = np.max(np.hstack((x,y)))
         scale_min = 10**(np.floor(np.log10(scale_min)))
@@ -372,7 +368,7 @@ def summary_plot(surf, vol, ax1, ax2, colors, title=[''], make_colorbar=False, y
         ax.set_xlabel(r'$K_d$ [M]')
         ax.set_xscale('log')
         ax.set_yscale('linear')
-
+        
         ax.xaxis.set_major_locator(MaxNLocator(4))
         scale_min = np.min(np.hstack((x,y)))
         scale_max = np.max(np.hstack((x,y)))

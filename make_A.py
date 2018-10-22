@@ -58,13 +58,13 @@ def seq2bool_ind(seq, interactions, alphabet):
         vals += curr * (alphabet ** ii)
     effective_alphabet = alphabet ** len(interactions)-1
     out = [res2ind(vals[ind], ind, effective_alphabet) for ind in range(len(vals))]
-    out = filter(lambda x: x >= 0, out)
+    out = [x for x in out if x >= 0]
     out = [int(num) for num in out]
     return out
 
 
 def get_seq_ind(seq, interactions):
-    base_ind=np.array(range(len(seq)),dtype=int)
+    base_ind=np.array(list(range(len(seq))),dtype=int)
     int_ind=[]
     usethis=base_ind>=0
     for ii in range(len(interactions)):

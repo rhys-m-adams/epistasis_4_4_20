@@ -70,7 +70,7 @@ if __name__=='__main__':
     labeler.label_subplot(ax,'A')
 
     labeler = Labeler(xpad=0.09,ypad=0.0,fontsize=14)
-    print '1H base R^2: %f, biochemical R^2: %f'%(Rsquare1[0], np.max(Rsquare1))
+    print('1H base R^2: %f, biochemical R^2: %f'%(Rsquare1[0], np.max(Rsquare1)))
 
 
     ax = axes[0,1]
@@ -81,7 +81,7 @@ if __name__=='__main__':
 
     ax.set_xlabel(r'$\lambda$ (penalty)')
     ax.set_title('3H')
-    print '3H base R^2: %f, biochemical R^2: %f'%(Rsquare3[0], np.max(Rsquare3))
+    print('3H base R^2: %f, biochemical R^2: %f'%(Rsquare3[0], np.max(Rsquare3)))
 
     f = (np.array(KD1)).flatten()
     ind_zero = np.where(np.array(num_muts1==0))[0]
@@ -94,7 +94,7 @@ if __name__=='__main__':
     finite_vals= np.isfinite(f2) & np.isfinite(KD1.flatten()) & (num_muts1>=2)
     ax = axes[1,0]
     labeler.label_subplot(ax,'B')
-    print '# CDR1H muts affected: %i'%(usethis.sum())
+    print('# CDR1H muts affected: %i'%(usethis.sum()))
     plot_epistasis(KD1[usethis], f1[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=1)
     ax.set_ylabel(r'PWM [M]')
 
@@ -115,7 +115,7 @@ if __name__=='__main__':
     f2[f2>KD_lims[1]] = KD_lims[1]
     usethis = (KD_epi_3.flatten()!=0) & np.isfinite(f2) & np.isfinite(KD3.flatten()) & (num_muts3==2)
     finite_vals= np.isfinite(f2) & np.isfinite(KD3.flatten()) & (num_muts3>=2)
-    print '# CDR3H muts affected: %i'%((usethis).sum())
+    print('# CDR3H muts affected: %i'%((usethis).sum()))
     ax = axes[1,1]
     plot_epistasis(KD3[usethis], f1[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=1)
 
@@ -131,7 +131,7 @@ if __name__=='__main__':
     usethis = KD_average_epi_1.flatten()!=0
     p1 = epi_p1.flatten()[usethis]
     p1[p1<1e-30] = 1e-30
-    ax.plot(range(p1.shape[0]), np.log10(np.sort(p1)))
+    ax.plot(list(range(p1.shape[0])), np.log10(np.sort(p1)))
     ax.xaxis.set_major_locator(MaxNLocator(4))
     ticks = [-5,-4,-3,-2,-1,0]
     ax.set_yticks(ticks)
@@ -148,7 +148,7 @@ if __name__=='__main__':
     p3 = epi_p3.flatten()[usethis]
     p3[p3<1e-30] = 1e-30
 
-    ax.plot(range(p3.shape[0]), np.log10(np.sort(p3)))
+    ax.plot(list(range(p3.shape[0])), np.log10(np.sort(p3)))
     #ax.axhline(np.log10(np.sort(p3))[-1],c=[0.3,0.3,0.3])
     ax.xaxis.set_major_locator(MaxNLocator(4))
     ax.set_yticks([])
