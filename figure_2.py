@@ -199,7 +199,7 @@ def query_FDR_p(single_cutoff, double_cutoff):
         known = pandas.read_csv('FDR_table.csv',header=0, index_col=0)
     except:
         single, double = get_FDR_p(single_cutoff, double_cutoff)
-        pandas.DataFrame({'cutoff1':[single_cutoff],'cutoff2':[double_cutoff],'single':[single],'double':[double]}).to_csv('FDR_table.csv')
+        pandas.DataFrame({'cutoff1':[single_cutoff],'cutoff2':[double_cutoff],'single':[np.round(single,8)],'double':[np.round(double,8)]}).to_csv('FDR_table.csv')
         known = pandas.read_csv('FDR_table.csv',header=0, index_col=0)
 
     usethis = known['cutoff1'].isin([single_cutoff]) & known['cutoff2'].isin([double_cutoff])
@@ -208,7 +208,7 @@ def query_FDR_p(single_cutoff, double_cutoff):
         double = float(known['double'].loc[usethis])
     else:
         single, double = get_FDR_p(single_cutoff, double_cutoff)
-        known = known.append(pandas.DataFrame({'cutoff1':[single_cutoff],'cutoff2':[double_cutoff],'single':[single],'double':[double]}))
+        known = known.append(pandas.DataFrame({'cutoff1':[single_cutoff],'cutoff2':[double_cutoff],'single':[np.round(single, 8)],'double':[np.round(double, 8)]}))
         known.to_csv('FDR_table.csv')
     return single, double
 
