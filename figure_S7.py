@@ -58,7 +58,7 @@ if __name__ == '__main__':
     ax.set_ylabel(r'standard error of the mean (log$_{10}K_d$)')
     ax.set_ylim([0,4.5])
     plt.legend()
-    plt.savefig('figure_fraction_std.pdf')
+    plt.savefig('figure_S7.pdf')
     plt.close()
     print(myf)
 

@@ -235,5 +235,5 @@ if __name__ == '__main__':
     ax.set_xlabel(r'log $_{10} K_d - $ log$_{10} PWM$')
     ax.set_ylabel('Expression', labelpad=2)
     
-    plt.savefig('./figure_expression.pdf')
+    plt.savefig('./figure_S2.pdf')
     plt.close()

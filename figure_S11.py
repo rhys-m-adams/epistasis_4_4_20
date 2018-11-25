@@ -168,5 +168,5 @@ if __name__ == '__main__':
     cutoff = 3
     plot_Z_structure(cutoff, [28,100], [Z_by_pos1, Z_by_pos3], 20, ax)
     ax.axis('off')
-    plt.savefig('epistasis_structure.pdf', dpi = 250)
+    plt.savefig('figure_S11.pdf', dpi = 250)
     plt.close()

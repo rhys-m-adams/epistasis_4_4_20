@@ -7,11 +7,10 @@ import pdb
 import time
 import pandas
 from scipy.stats import linregress
-from data_preparation_transformed import get_f1, get_data, get_data_ind
 from matplotlib.ticker import MaxNLocator
 from labeler import Labeler
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset, inset_axes
-from figure_monotonic_transformation_fit import plot_scan
+from figure_S6 import plot_scan, get_f1, get_data, get_data_ind
 from monotonic_fit import monotonic_fit
 
 med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data_ind()
@@ -111,5 +110,5 @@ for g_inv, name, filename, ii in zip(transformation, transform_name, out_name, l
 axes[-1,0].set_xlabel(r'$\alpha$')
 axes[-1,1].set_xlabel('F')
 
-plt.savefig('simulated_energy_fit.pdf')
+plt.savefig('figure_S5.pdf')
 plt.close()

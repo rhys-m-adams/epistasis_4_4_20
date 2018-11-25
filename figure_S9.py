@@ -49,5 +49,5 @@ if __name__ == '__main__':
     plot_epistasis_Z(A1, num_muts1, KD1, KD1_std, Z, r'', '1H', KD_lims, ax, make_ytick=True, plot_null=True)
     plot_epistasis_Z(A3, num_muts3, KD3, KD3_std, Z, r'Z', '3H', KD_lims, ax, make_ytick=True)
     ax.set_yscale('symlog',linthreshy=1e-2, linscaley=0.2)
-    plt.savefig('figure_Z_with_bound.pdf')
+    plt.savefig('figure_S9.pdf')
     plt.close()

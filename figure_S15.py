@@ -123,6 +123,6 @@ f2[f2<KD_lims[0]] = KD_lims[0]
 plot_epistasis(KD3, f2, num_muts3, KD_lims, ax, curr_title='3H', make_cbar=True, plot_ytick=True, plot_xtick=True, max_freq=3, min_freq=1)
 ax.set_title('3H')
 ax.set_xlabel(r'fit $K_d$, [M]')
-plt.savefig('figure_MJ.pdf')
+plt.savefig('figure_S15.pdf')
 plt.close()
 

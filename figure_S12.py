@@ -1,5 +1,5 @@
 from structure_connections import distances, distances_a, distances_b, fl_d
-from figure_z_epistasis_pos import Z_by_pos1, Z_by_pos3, Z_by_pos1_neg, Z_by_pos3_neg, Z_by_pos1_pos, Z_by_pos3_pos
+from figure_S11 import Z_by_pos1, Z_by_pos3, Z_by_pos1_neg, Z_by_pos3_neg, Z_by_pos1_pos, Z_by_pos3_pos
 import numpy as np
 import matplotlib.pyplot as plt
 from labeler import Labeler
@@ -86,5 +86,5 @@ ax.set_ylabel(r'$\langle Z_{\rm{epi}}^2 \rangle^{\frac{1}{2}}$')
 #ax.scatter(fl_d[10:], np.nansum(Z_by_pos3, axis=0))
 #print(spearmanr(fl_d[10:], np.nansum(Z_by_pos3, axis=0)))
 
-plt.savefig('distance_epistasis.pdf')
+plt.savefig('figure_S12.pdf')
 plt.close()

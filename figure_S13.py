@@ -90,7 +90,7 @@ CDR1_del = plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, 'Deleterious', 28, 'ALL
 CDR3_del = plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '', 90, 'ALL', ax=ax, make_colorbar=True, epistasis='deleterious')
 pandas.concat([CDR1, CDR3, CDR1_del, CDR3_del]).to_csv('S1_table_sign_epistasis.csv')
 #ax.set_ylim([-1.8,7])
-plt.savefig('deleterious_sign_epistasis.pdf')
+plt.savefig('figure_S13.pdf')
 plt.close()
 
 KD_table = open('./CDR1H_sign_epistasis.tex', 'w')

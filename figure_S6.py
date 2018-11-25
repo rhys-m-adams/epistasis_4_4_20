@@ -138,5 +138,5 @@ if __name__ == '__main__':
         else:
             ax.set_ylabel(r'$E_{\rm{PWM}}$')
 
-    plt.savefig('figure_monotonic_transformation_fit.pdf')
+    plt.savefig('figure_S6.pdf')
     plt.close('all')

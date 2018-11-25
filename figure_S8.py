@@ -115,6 +115,6 @@ if __name__ == '__main__':
     ax.set_xlabel('clonal Z')
     ax.set_ylabel('frequency')
     
-    plt.savefig('figure_clones.pdf')
+    plt.savefig('figure_S8.pdf')
     plt.close()
 

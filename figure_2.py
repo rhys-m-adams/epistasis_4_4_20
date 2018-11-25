@@ -13,7 +13,7 @@ from matplotlib import gridspec
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
-
+from model_plot import get_stats, summary_plot, plot_connections, KD_average_epi_1, KD_average_epi_3, make_linear_epistasis_model, cdr1_list, cdr3_list, epi_p1, epi_p3
 logKD2PWM, PWM2logKD = get_transformations()
 med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM)
 
@@ -513,11 +513,11 @@ def plot_sign_epistasis_example(ax):
     ax.scatter(2,1.1, c=[0.8,0.,0.],s=size/2., zorder=10)
     ax.scatter(2,0.66, s=size/2., c=[1.,0,1], zorder=10)
     ax.scatter(2,-0.25, s=size/2., c=[0.9,0.6,0.1], zorder=10)
-    ax.text(2.2,0.66, 'sign epistasis', zorder=10, va='center')
-    ax.text(2.2,-0.25, 'reciprocal\nsign epistasis', zorder=10, va='center')
-    ax.text(2.2,1.5, 'PWM', zorder=10, va='center')
-    ax.text(2.2,1.9, 'deleterious epistasis', zorder=10, va='center')
-    ax.text(2.2,1.1, 'beneficial epistasis', zorder=10, va='center')
+    ax.text(2.3,0.66, 'sign epistasis', zorder=10, va='center')
+    ax.text(2.3,-0.25, 'reciprocal\nsign epistasis', zorder=10, va='center')
+    ax.text(2.3,1.5, 'PWM', zorder=10, va='center')
+    ax.text(2.3,1.9, 'deleterious epistasis', zorder=10, va='center')
+    ax.text(2.3,1.1, 'beneficial epistasis', zorder=10, va='center')
 
     ax.text(1,0.5, 'A', zorder=10, ha='center', va='center', color=[1,1,1])
     ax.text(1,1, 'B', zorder=10, ha='center', va='center', color=[1,1,1])
@@ -586,47 +586,117 @@ if __name__ == '__main__':
     plt.ion()
     plt.close('all')
     
-    figsize=(7.3*0.7,3.3)
+    figsize=(7.3*0.7, 7.3)
     fig, axes = plt.subplots(figsize=figsize)
-    gs = gridspec.GridSpec(19, 41)
+    gs = gridspec.GridSpec(45, 41)
     plt.subplots_adjust(
-        bottom = 0.13,
+        bottom = 0.03,
         top = 0.95,
-        left = 0.11,
+        left = 0.0,
         right = 0.99,
         hspace = 0,
         wspace = 0)
     
     # Make a labler to add labels to subplots
-    labeler = Labeler(xpad=0.04,ypad=-0.01,fontsize=14)
+    labeler = Labeler(xpad=-0.03,ypad=0.01,fontsize=14)
     
-    ax = plt.subplot(gs[13:19,0:20])
+    ax = plt.subplot(gs[14:19, 5:20])
     plot_epistasis_Z(A1[KD_use1], num_muts1[KD_use1], KD1[KD_use1], KD1_std[KD_use1], Z, r'', '1H', KD_lims, ax, make_ytick=True, plot_null=True)
-    labeler.label_subplot(ax,'B')
     
     plot_epistasis_Z(A3[KD_use3], num_muts3[KD_use3], KD3[KD_use3], KD3_std[KD_use3], Z, r'Z', '3H', KD_lims, ax, make_ytick=True)
     ax.set_yscale('symlog',linthreshy=1e-2, linscaley=0.2)
+
+    ax = plt.subplot(gs[14:19, 0:4])
+    ax.set_visible(False)
+    labeler.label_subplot(ax, 'B')
     
-    ax = plt.subplot(gs[0:8,27:36])
+    ax = plt.subplot(gs[0:8, 27:36])
+    labeler = Labeler(xpad=0.09,ypad=0.01, fontsize=14)
     labeler.label_subplot(ax,'C')
 
     plot_Z_epistasis_by_pos(Z_by_pos1, 20, 28, 3, ax, curr_title = '1H', opt=opt1, make_ylabel=True, make_colorbar=True)
     
     ax.set_xlabel(' ')
     #labeler.label_subplot(ax,'C')
-    
-    ax = plt.subplot(gs[11:19,27:36])
+    ax = plt.subplot(gs[11:19, 27:36])
     plot_Z_epistasis_by_pos(Z_by_pos3, 20, 100, 3, ax, curr_title = '3H', opt=opt3, make_ylabel=True, make_colorbar=True)
     
-    ax = plt.subplot(gs[0:8,0:9])
+    ax = plt.subplot(gs[0:8, 4:10])
     plot_sign_epistasis_example(ax)
-    labeler.label_subplot(ax,'A')
+
+    labeler = Labeler(xpad=-0.03,ypad=0.01,fontsize=14)
+    ax = plt.subplot(gs[0:8, 0:4])
+    ax.set_visible(False)
+    labeler.label_subplot(ax, 'A')
+
+    ############################################################################
+    print('# of found epistatic terms from biochemical model, CDR1H: %i, CDR3H: %i'%(np.sum(KD_average_epi_1!=0),np.sum(KD_average_epi_3!=0)))
+    A_opt1 = make_linear_epistasis_model(['TFGHYWMNWV'], cdr1_list)
+    A_opt3 = make_linear_epistasis_model(['GASYGMEYLG'], cdr3_list)
+    epi_contributions1 = (A_opt1 * (KD_average_epi_1.flatten())).flatten()
+    epi_contributions3 = (A_opt3 * (KD_average_epi_3.flatten())).flatten()
+    usethis1 = np.where(epi_contributions1)[0]
+    usethis3 = np.where(epi_contributions3)[0]
+    print('Epistatic contribution to OPT CDR1H domain: '+ str(epi_contributions1[usethis1]))
+    print('Epistatic contribution to OPT CDR3H domain: '+ str(epi_contributions3[usethis3]))
+    print('Epistatic contribution to OPT CDR1H domain: '+ str(np.sum(epi_contributions1[usethis1])))
+    print('Epistatic contribution to OPT CDR3H domain: '+ str(np.sum(epi_contributions3[usethis3])))
+
+    print('sum |epistatic contribution| CDR1: %f'%(np.sum(np.abs(KD_average_epi_1))))
+    print('sum |epistatic contribution| CDR3: %f'%(np.sum(np.abs(KD_average_epi_3))))
     
-    #ax = plt.subplot(gs[0:15,26:])
-    #labeler = Labeler(xpad=-0.01,ypad=-0.0, fontsize=14)
-    #labeler.label_subplot(ax,'D')
-    #CDR1_del = plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'ALL', ax=ax, make_colorbar=False, epistasis='beneficial', y_offset=4)
-    #CDR3_del = plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'ALL', ax=ax, make_colorbar=True, epistasis='beneficial')
+    def get_sign_model(x, sign):
+        out = np.array(x)
+        out[(out*sign)>0] = 0
+        return out
+
+    num_x=41
+    ax = plt.subplot(gs[24:33,0:int(num_x/2)])
+    num_pos = np.sum((get_sign_model(KD_average_epi_1,1) * (epi_p1<(5e-2)))!=0) + np.sum((get_sign_model(KD_average_epi_3,1) * (epi_p3<(5e-2)))!=0)
+    print('lasso fit, number positive=%i'%(num_pos))
+    num_neg = np.sum((get_sign_model(KD_average_epi_1,-1) * (epi_p1<(5e-2)))!=0) + np.sum((get_sign_model(KD_average_epi_3,-1) * (epi_p3<(5e-2)))!=0)
+    print('lasso fit, number negative=%i'%(num_neg))
+    CDR1_pos_connections = plot_connections(get_sign_model(KD_average_epi_1,1) * (epi_p1<(5e-2)), cdr1_list, 28,0., ax,0)
+    ax.axis('off')
+    # Make a labler to add labels to subplots
+    
+    labeler = Labeler(xpad=-0.03,ypad=0.01,fontsize=14)
+    labeler.label_subplot(ax,'D')
+    ax.set_title('beneficial')
+    CDR3_pos_connections = plot_connections(get_sign_model(KD_average_epi_3,1) * (epi_p3<(5e-2)), cdr3_list, 100,0., ax,2.5)
+    ax.set_xlim([-1.3,3.8])
+    ax.axis('off')
+
+    ax = plt.subplot(gs[35:44,0:int(num_x/2)])
+    CDR1_neg_connections = plot_connections(get_sign_model(KD_average_epi_1,-1) * (epi_p1<(5e-2)), cdr1_list, 28,0., ax,0)
+    ax.axis('off')
+    labeler.label_subplot(ax,'E')
+    ax.set_title('deleterious')
+
+    CDR3_neg_connections = plot_connections(get_sign_model(KD_average_epi_3,-1) * (epi_p3<(5e-2)), cdr3_list, 100,0., ax,2.5, label_on=True)
+    ax.set_xlim([-1.3,3.8])
+    ax.axis('off')
+
+    leg = ax.legend(loc='lower center', bbox_to_anchor=(0.63,-0.29), frameon=False, columnspacing=1, handlelength=0.6, ncol=2)
+    for legobj in leg.legendHandles:
+        legobj.set_linewidth(4)
+
+    ax3 = plt.subplot(gs[26:32,int(num_x*3/5+4):40])
+    ax4 = plt.subplot(gs[37:43,int(num_x*3/5+4):40])
+    cdr1_results = pandas.read_csv('cdr1h.csv', header=0)
+    vol_0, surf_0 = get_stats(cdr1_results)
+    summary_plot(surf_0, vol_0, ax3, ax4, colors=['#000080','#8080FF'], title ='1H', ylabels=True)
+
+    labeler = Labeler(xpad=0.09,ypad=0.01, fontsize=14)
+    ax_label = plt.subplot(gs[24,int(num_x*3/5+4):40])
+    ax_label.set_visible(False)
+    labeler.label_subplot(ax_label,'F')
+    labeler.label_subplot(ax4,'G')
+
+    cdr3_results = pandas.read_csv('cdr3h.csv', header=0)
+    vol_0, surf_0 = get_stats(cdr3_results)
+    summary_plot(surf_0, vol_0, ax3, ax4, colors=['#800000','#FF8080'], title ='3H', make_colorbar=False, ylabels=True)
+    leg = ax3.legend(loc='center', bbox_to_anchor=(0.5, 1.35),ncol=2, columnspacing=0.1, frameon=True, fancybox=True, scatterpoints=1, borderaxespad=0, handlelength=1., handletextpad=0.5)
 
     plt.savefig('figure_2.pdf')
     plt.close()

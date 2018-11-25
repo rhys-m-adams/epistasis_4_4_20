@@ -7,7 +7,7 @@ from get_fit_PWM_transformation import get_transformations, get_spline_transform
 import numpy as np
 import pandas
 from labeler import Labeler
-from figure_3 import epi_p1,epi_p3, KD_average_epi_1, KD_average_epi_3, KD_epi_1, KD_epi_3, penalties1, Rsquare1, penalties3, Rsquare3
+from model_plot import epi_p1,epi_p3, KD_average_epi_1, KD_average_epi_3, KD_epi_1, KD_epi_3, penalties1, Rsquare1, penalties3, Rsquare3
 import pdb
 logKD2PWM, PWM2logKD = get_transformations()
 med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM)
@@ -49,10 +49,10 @@ if __name__=='__main__':
     plt.subplots_adjust(
         bottom = 0.07,
         top = 0.95,
-        left = 0.18,
-        right = 0.89,
+        left = 0.16,
+        right = 0.87,
         hspace = 0.6,
-        wspace = 0.6)
+        wspace = 0.7)
 
     # Make a labler to add labels to subplots
     labeler = Labeler(xpad=0.09,ypad=0.01,fontsize=14)
@@ -78,6 +78,7 @@ if __name__=='__main__':
     ax.semilogx(penalties3[usethis], Rsquare3[usethis])
     ax.set_xticks([1e-6,1e-4,1e-2])
     ax.set_yticks(np.arange(np.round(Rsquare3[usethis].min(),2),np.round(Rsquare3[usethis].max(),2),0.01))
+    ax.set_ylabel(r'$R^2$')
 
     ax.set_xlabel(r'$\lambda$ (penalty)')
     ax.set_title('3H')
@@ -90,18 +91,18 @@ if __name__=='__main__':
     f2 = f1.flatten() + KD_epi_1.flatten()
     f2[f2<KD_lims[0]] = KD_lims[0]
     f2[f2>KD_lims[1]] = KD_lims[1]
-    usethis = (KD_epi_1.flatten()!=0) & np.isfinite(f2) & np.isfinite(KD1.flatten()) & (num_muts1==2)
+    usethis = (KD_epi_1.flatten()!=0) & np.isfinite(f2) & np.isfinite(KD1.flatten())
     finite_vals= np.isfinite(f2) & np.isfinite(KD1.flatten()) & (num_muts1>=2)
     ax = axes[1,0]
     labeler.label_subplot(ax,'B')
     print('# CDR1H muts affected: %i'%(usethis.sum()))
-    plot_epistasis(KD1[usethis], f1[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=1)
+    plot_epistasis(KD1[usethis], f1[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=3, min_freq=1)
+    ax.set_xlabel(r'$K_d$ [M]')
     ax.set_ylabel(r'PWM [M]')
-
-
+    
     ax = axes[2,0]
     labeler.label_subplot(ax,'C')
-    plot_epistasis(KD1[usethis], f2[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=1)
+    plot_epistasis(KD1[usethis], f2[usethis], num_muts1[usethis], KD_lims, ax, make_cbar=False, plot_ytick=False, max_freq=3, min_freq=1)
     ax.set_xlabel(r'$K_d$ [M]')
     ax.set_ylabel(r'pairwise [M]')
 
@@ -113,14 +114,14 @@ if __name__=='__main__':
     f2 = f1.flatten() + KD_epi_3.flatten()
     f2[f2<KD_lims[0]] = KD_lims[0]
     f2[f2>KD_lims[1]] = KD_lims[1]
-    usethis = (KD_epi_3.flatten()!=0) & np.isfinite(f2) & np.isfinite(KD3.flatten()) & (num_muts3==2)
+    usethis = (KD_epi_3.flatten()!=0) & np.isfinite(f2) & np.isfinite(KD3.flatten())
     finite_vals= np.isfinite(f2) & np.isfinite(KD3.flatten()) & (num_muts3>=2)
     print('# CDR3H muts affected: %i'%((usethis).sum()))
     ax = axes[1,1]
-    plot_epistasis(KD3[usethis], f1[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=1)
-
+    plot_epistasis(KD3[usethis], f1[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=3, min_freq=1)
+    
     ax = axes[2,1]
-    plot_epistasis(KD3[usethis], f2[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=1)
+    plot_epistasis(KD3[usethis], f2[usethis], num_muts3[usethis], KD_lims, ax, make_cbar=True, plot_ytick=False, max_freq=3, min_freq=1)
     ax.set_xlabel(r'$K_d$ [M]')
 
     labeler = Labeler(xpad=0.08,ypad=-0.0, fontsize=14)
@@ -132,6 +133,8 @@ if __name__=='__main__':
     p1 = epi_p1.flatten()[usethis]
     p1[p1<1e-30] = 1e-30
     ax.plot(list(range(p1.shape[0])), np.log10(np.sort(p1)))
+    #ax.axhline(np.log10(np.sort(p1))[-1],c=[0.3,0.3,0.3])
+
     ax.xaxis.set_major_locator(MaxNLocator(4))
     ticks = [-5,-4,-3,-2,-1,0]
     ax.set_yticks(ticks)
@@ -157,7 +160,8 @@ if __name__=='__main__':
     ax.set_xlim([0,p3.shape[0]-1])
     ax.set_aspect((p3.shape[0]-1)/5.)
     ax.set_xlabel('parameter')
+    ax.set_ylabel('posterior')
     #ax.set_title('3H')
 
-    plt.savefig('figure_biochemical_fit_3_mut_pvals.pdf')
+    plt.savefig('figure_S14.pdf')
     plt.close()

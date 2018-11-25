@@ -19,7 +19,7 @@ from get_fit_PWM_transformation import get_transformations, get_spline_transform
 import itertools
 import errno
 import os
-from figure_3 import fit_ave_epistasis_by_pos, plot_connections, summary_plot, make_linear_epistasis_model, get_stats
+from model_plot import fit_ave_epistasis_by_pos, plot_connections, summary_plot, make_linear_epistasis_model, get_stats
 
 def mkdir(path):
     try:
@@ -190,5 +190,5 @@ if __name__ == '__main__':
     summary_plot(surf_0, vol_0, ax3, ax4, colors=['#800000','#FF8080'], title ='3H', make_colorbar=False, ylabels=True)
     leg = ax3.legend(loc='center', bbox_to_anchor=(0.5, 1.3),ncol=2, columnspacing=0.1, frameon=True, fancybox=True, scatterpoints=1, borderaxespad=0, handlelength=1., handletextpad=0.5)
     
-    plt.savefig('figure_3_optimized.pdf')
+    plt.savefig('figure_S16.pdf')
     plt.close()

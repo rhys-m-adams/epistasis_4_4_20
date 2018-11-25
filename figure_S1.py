@@ -166,5 +166,5 @@ ax.set_xlabel(r'$K_d$')
 ax.set_ylabel(r'BLOSUM62 score')
 ax.set_title('3H')
 
-plt.savefig('figure_blosum.pdf')
+plt.savefig('figure_S1.pdf')
 plt.close()

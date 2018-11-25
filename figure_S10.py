@@ -111,5 +111,5 @@ if __name__ == '__main__':
     print('deleterious epistasis, 1H:%i, 3H:%i'%(CDR1_pos.shape[0],CDR3_pos.shape[0]))
     print('total: %i'%(CDR1_del.shape[0]+CDR3_del.shape[0]+CDR1_pos.shape[0]+CDR3_pos.shape[0]))
 
-    plt.savefig('figure_2_optimized.pdf')
+    plt.savefig('figure_S10.pdf')
     plt.close()
