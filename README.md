@@ -10,11 +10,6 @@ conda install -y -c conda-forge svgutils
 ```
 This installed cvxopt=1.1.8, emcee=2.2.1, and svgutils=0.2.0. 
 
-I made a beeswarm plot, which can be installed by pip
-```
-pip install pybeeswarm
-```
-
 Additionally, I installed pymol on MacOS as
 
 ```
