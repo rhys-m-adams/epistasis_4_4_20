@@ -1,5 +1,6 @@
 # epistasis_4_4_20
-This is the code used to create the figures in my preprint "Physical epistatic landscape of antibody binding affinity" (https://www.biorxiv.org/content/early/2017/12/11/232645). I ran this code using Python 3.6.6 from anaconda (https://www.anaconda.com/download/). In particular I used used scipy=1.0.1, numpy=1.14.5, pandas=0.20.3, and matplotlib=2.2.2. I installed the additional programs
+This is the code used to create the figures in my manuscript "Epistasis in a Fitness Landscape Defined by Antibody-Antigen Binding Free Energy" (https://www.cell.com/cell-systems/fulltext/S2405-4712(18)30478-2),
+previously "Physical epistatic landscape of antibody binding affinity" (https://www.biorxiv.org/content/early/2017/12/11/232645). The purpose of this repository is to deterministically reproduce the figures used in my manuscript, and will only be updated to keep the code compatible with changes to language standards. For those interested in using the monotonic optimizer used in figures S5 and S6, I will maintain this code at https://github.com/rhys-m-adams/monotonic_fit. I ran this code using Python 3.6.6 from anaconda (https://www.anaconda.com/download/). In particular I used used scipy=1.0.1, numpy=1.14.5, pandas=0.20.3, and matplotlib=2.2.2. I installed the additional programs
 ```
 #monotonic fit requirement
 conda install -y -c conda-forge cvxopt
