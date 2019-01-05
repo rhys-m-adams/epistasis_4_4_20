@@ -19,7 +19,7 @@ import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
 import matplotlib.patheffects as PathEffects
 from scipy.stats import linregress
-#from scipy.interpolate import interp1d
+
 logKD2PWM, PWM2logKD = get_transformations()
 med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(transform=logKD2PWM)
 

@@ -16,7 +16,7 @@ import matplotlib.patheffects as PathEffects
 import svgutils.transform as sg
 
 def plot_blosum(f, f1, num_muts, lims, ylims, ax, curr_title='', make_cbar=False, plot_ytick=False, plot_xtick=True, min_freq=0, max_freq=2, logscale=False, custom_axis=[]):
-    usethis = np.isfinite(f1) & np.isfinite(f)#& (num_muts>1) #& (f>lims[0]) & (f<lims[1]) & (f1>lims[0]) & (f1<lims[1])
+    usethis = np.isfinite(f1) & np.isfinite(f)
     nbins = 20
     H, xedges, yedges = np.histogram2d(
         f[usethis], f1[usethis],
@@ -42,8 +42,7 @@ def plot_blosum(f, f1, num_muts, lims, ylims, ax, curr_title='', make_cbar=False
         in_interval = lambda x: (x >= lims[0]) and (x <= lims[1])
         xticks = [ii for ii in range(int(np.floor(lims[0]))-1, int(np.ceil(lims[1]))+1) if ((ii%2)==1) and in_interval(ii)]
         ax.set_xticks(xticks)
-        #yticks = [ii for ii in range(int(np.floor(ylims[0]))-1, int(np.ceil(ylims[1]))+1) if ((ii%2)==1) and in_interval(ii)]
-        #ax.set_yticks(yticks)
+        
         format_num = lambda x:int(np.round(x))
         for x in xticks:
             if np.round(x) != x:
@@ -54,7 +53,6 @@ def plot_blosum(f, f1, num_muts, lims, ylims, ax, curr_title='', make_cbar=False
         if plot_ytick:
             yticks = ax.get_yticks()
             yticklabels = [r'$10^{'+str(format_num(x))+'}$' for x in yticks]
-            #ax.set_yticklabels(yticklabels)
             ax.tick_params(axis='y', which='major', pad=2)
 
         else:
@@ -81,7 +79,7 @@ def plot_blosum(f, f1, num_muts, lims, ylims, ax, curr_title='', make_cbar=False
         txt = ax.text(0.11,0.02, r'$R^2<0.001$', transform=ax.transAxes)
     else:
         txt = ax.text(0.11,0.02, r'$R^2=$' + str(np.round(Rsquare,3)), transform=ax.transAxes)
-    #txt.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='w', alpha=1)])
+    
     plt.savefig('deleteme.pdf')
     cbar = []
     if make_cbar:
@@ -105,10 +103,8 @@ def plot_blosum(f, f1, num_muts, lims, ylims, ax, curr_title='', make_cbar=False
                 return r'$10^{%i}$'%(np.log10(x))
             return r'$10^{\frac{%i}{2}}$'%np.round(np.log10(x)*2)
 
-        #level_ticks = [cleanup(level) for level in lvls]
-        #level_ticks[-1] = r'$\geq$' + level_ticks[-1]
-        #cbar.set_ticklabels(xtl)
-
+    
+    
     return cbar
 
 if __name__ == '__main__':
@@ -231,7 +227,7 @@ if __name__ == '__main__':
 
     ax = axes[1,1]
     cbar = plot_blosum(KD3-f1, E3, num_muts3, [-1,3.5], [-1,0.5], ax, make_cbar=True,)
-    #plot_blosum(KD3, f1, num_muts3, KD_lims, ax, make_cbar=True, plot_ytick=True, max_freq=3,min_freq=1)
+    
     ax.set_xlabel(r'log $_{10} K_d - $ log$_{10} PWM$')
     ax.set_ylabel('Expression', labelpad=2)
     

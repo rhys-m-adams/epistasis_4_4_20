@@ -130,17 +130,14 @@ def plot_connected_dm(representative, ax, plot_title, make_colorbar, y_offset, w
 
         # [left, bottom, width, height]
         position = ([x00+0.03, 0.11, x01-x00-0.06, 0.02])
-        #cbar = plt.colorbar(im, orientation='vertical', ticks=lvls2)
         cbar = plt.colorbar(cax, cax=plt.gcf().add_axes(position), orientation='horizontal', ticks=ticks)
         cbar.set_ticklabels(['$10^{%i}$'%(logKD) for logKD in ticks])
 
-
-        #cbar.ax.set_yticklabels([r'$10^{%d}$'%np.log10(t) for t in lvls2])
         cbar.set_label(r'$K_d$ [M]',labelpad=2)
 
     ax.set_ylim([-1.8,5.8])
     ax.set_xlim([-2.6,2.6])
-    ax.text(0.,1.9 + y_offset, plot_title, ha='center')#plt.colorbar(cax)
+    ax.text(0.,1.9 + y_offset, plot_title, ha='center')
 
 
 def prepare_X_Z(A, val, val_std, AA, offset):
@@ -148,7 +145,7 @@ def prepare_X_Z(A, val, val_std, AA, offset):
     ind_zero = np.where(np.array(num_muts==0))[0]
     wt_val = float(val[ind_zero])
     val_var = val_std**2
-    f1, x = get_f1(A, num_muts, val, wt_val)#, limit=[-9.5,-5])
+    f1, x = get_f1(A, num_muts, val, wt_val)
     f1_var, x_var = get_f1(A, num_muts, val_var, 0)
 
     usethis = np.where((num_muts==2) & np.isfinite(val) & np.isfinite(val_std))[0]
@@ -157,8 +154,6 @@ def prepare_X_Z(A, val, val_std, AA, offset):
     Z1 = np.array([x[np.array(Arow).flatten()==1]/np.sqrt(x_var[np.array(Arow).flatten()==1]+1e-16) for Arow in np.array(A[usethis].todense())])
     std1 = np.sqrt(np.array([x_var[np.array(Arow).flatten()==1] for Arow in np.array(A[usethis].todense())]))
     X1 = np.array([x[np.array(Arow).flatten()==1] for Arow in np.array(A[usethis].todense())])
-    #out['Z'] = (out['f'] - out['f1']) * 1./np.sqrt(out['f1_std']**2 + out['f_std']**2)
-    #X2 = np.array(out[['f','f']])
 
     out['Z_sign1'] = (np.array(out['F']) - (X1[:,1] + wt_val)) * 1./np.sqrt(np.array(out['F_std'])**2 + std1[:,1]**2 + 1e-16)
     out['Z_sign2'] = (np.array(out['F']) - (X1[:,0] + wt_val)) * 1./np.sqrt(np.array(out['F_std'])**2 + std1[:,0]**2 + 1e-16)
@@ -290,9 +285,6 @@ def plot_KD_sign_epistasis(A, val, val_std, AA, title_name, AA_pos_offset, logic
     print(1-binom.cdf(num_s_e, total_count, expected_num_s_e/total_count))
     print('Probability of reciprocal sign epistasis')
     print(1-binom.cdf(num_r_s_e, total_count, expected_num_r_s_e/total_count))
-    #num_viable
-    #expected_num_s_e
-    #num_s_e
     if not(fid == None):
         fid.write('%s & %s & %s & %i & %i/%.2f  & %i/%.2f & %i/%.2f \\\\ \\hline \n'%(title_name, num_catastrophic, epistasis, total_count, num_s_e, expected_num_s_e, num_r_s_e, expected_num_r_s_e, num_viable, expected_num_viable))
     if ax != None:
@@ -328,7 +320,7 @@ def calculate_Z_epistasis_by_pos(A, num_muts, val, val_std, pos, usethis, lims, 
     f1, x = get_f1(A, num_muts, f, wt_val, limit =lims)
     f1_var, x_var = get_f1(A, num_muts, val_var, 0)
     sigma_m = np.sqrt(f1_var + val_var)
-    usethis = np.isfinite(f1) & np.isfinite(f)& (num_muts>=2) & usethis  #& (f>lims[0]) & (f<lims[1])# & (f1>lims[0]) & (f1<lims[1])
+    usethis = np.isfinite(f1) & np.isfinite(f)& (num_muts>=2) & usethis  
     deviance = [[[] for jj in range(10)] for ii in range(10)]
     n = [[[] for jj in range(10)] for ii in range(10)]
     for l, lhat, s_m, p in zip(f[usethis], f1[usethis], sigma_m[usethis], pos[usethis]):
@@ -530,7 +522,7 @@ def plot_sign_epistasis_example(ax):
     ax.plot([1,2],[1,0.66], c=[1.,0,1], lw=2)
     ax.set_yticks([])
     ax.set_xticks([0,1,2])
-    #ax.set_xticklabels(['WT', 'single\nmutant','double\nmutant'])
+
     ax.set_xlabel('Number of mutations')
     ax.set_ylabel('binding\nenergy')
     ax.set_ylim([-0.6,2.1])
@@ -617,7 +609,6 @@ if __name__ == '__main__':
     plot_Z_epistasis_by_pos(Z_by_pos1, 20, 28, 3, ax, curr_title = '1H', opt=opt1, make_ylabel=True, make_colorbar=True)
     
     ax.set_xlabel(' ')
-    #labeler.label_subplot(ax,'C')
     ax = plt.subplot(gs[11:19, 27:36])
     plot_Z_epistasis_by_pos(Z_by_pos3, 20, 100, 3, ax, curr_title = '3H', opt=opt3, make_ylabel=True, make_colorbar=True)
     
@@ -658,8 +649,8 @@ if __name__ == '__main__':
     print('lasso fit, number negative=%i'%(num_neg))
     CDR1_pos_connections = plot_connections(get_sign_model(KD_average_epi_1,1) * (epi_p1<(5e-2)), cdr1_list, 28,0., ax,0)
     ax.axis('off')
+
     # Make a labler to add labels to subplots
-    
     labeler = Labeler(xpad=-0.03,ypad=0.01,fontsize=14)
     labeler.label_subplot(ax,'D')
     ax.set_title('beneficial')

@@ -10,8 +10,8 @@ from figure_2 import plot_epistasis_Z
 
 if __name__ == '__main__':
     logKD2PWM, PWM2logKD = get_transformations()
-    med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(transform=logKD2PWM)#, exclude_boundary=False)
-
+    med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(transform=logKD2PWM)
+    
     mpl.rcParams['font.size'] = 10
     mpl.font_manager.FontProperties(family = 'Helvetica')
     mpl.rcParams['pdf.fonttype'] = 42

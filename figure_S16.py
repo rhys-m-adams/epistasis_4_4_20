@@ -160,13 +160,9 @@ if __name__ == '__main__':
     ax.set_xlim([-1.3,3.8])
     ax.axis('off')
 
-    #ax = plt.subplot(gs[6,:])
-    #plot_connections(KD_average_epi_3, cdr3_list, 100,0.0, ax, 0, visible=False)
-    #ax.axis('off')
     leg = ax.legend(loc='lower center', bbox_to_anchor=(0.63,-0.19), frameon=False, columnspacing=1, handlelength=0.6, ncol=2)
     for legobj in leg.legendHandles:
         legobj.set_linewidth(4)
-    #ax.axis('off')
     
     ax3 = plt.subplot(gs[1:4,int(num_x*3/5+1):])
     ax4 = plt.subplot(gs[6:9,int(num_x*3/5+1):])

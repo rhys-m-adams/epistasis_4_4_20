@@ -14,7 +14,7 @@ from matplotlib.colors import LogNorm
 np.random.seed(0)
 wt_seq = 'TFSDYWMNWVGSYYGMDYWG'
 def plot_blosum(f, f1, num_muts, lims, ylims, ax, curr_title='', make_cbar=False, plot_ytick=False, plot_xtick=True, min_freq=0, max_freq=2, logscale=True, custom_axis=[]):
-    usethis = np.isfinite(f1) & np.isfinite(f)#& (num_muts>1) #& (f>lims[0]) & (f<lims[1]) & (f1>lims[0]) & (f1<lims[1])
+    usethis = np.isfinite(f1) & np.isfinite(f)
     nbins = 20
     H, xedges, yedges = np.histogram2d(
         f[usethis], f1[usethis],
@@ -40,8 +40,6 @@ def plot_blosum(f, f1, num_muts, lims, ylims, ax, curr_title='', make_cbar=False
         in_interval = lambda x: (x >= lims[0]) and (x <= lims[1])
         xticks = [ii for ii in range(int(np.floor(lims[0]))-1, int(np.ceil(lims[1]))+1) if ((ii%2)==1) and in_interval(ii)]
         ax.set_xticks(xticks)
-        #yticks = [ii for ii in range(int(np.floor(ylims[0]))-1, int(np.ceil(ylims[1]))+1) if ((ii%2)==1) and in_interval(ii)]
-        #ax.set_yticks(yticks)
         format_num = lambda x:int(np.round(x))
         for x in xticks:
             if np.round(x) != x:
@@ -52,7 +50,6 @@ def plot_blosum(f, f1, num_muts, lims, ylims, ax, curr_title='', make_cbar=False
         if plot_ytick:
             yticks = ax.get_yticks()
             yticklabels = [r'$10^{'+str(format_num(x))+'}$' for x in yticks]
-            #ax.set_yticklabels(yticklabels)
             ax.tick_params(axis='y', which='major', pad=2)
 
         else:
@@ -76,7 +73,6 @@ def plot_blosum(f, f1, num_muts, lims, ylims, ax, curr_title='', make_cbar=False
     lim_range = lims[1] - lims[0]
     Rsquare = pearsonr(f[usethis],f1[usethis])[0]**2
     txt = ax.text(0.31,0.02, r'$R^2=$' + str(np.round(Rsquare,2)), transform=ax.transAxes)
-    #txt.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='w', alpha=1)])
     plt.savefig('deleteme.pdf')
     cbar = []
     if make_cbar:
@@ -100,10 +96,7 @@ def plot_blosum(f, f1, num_muts, lims, ylims, ax, curr_title='', make_cbar=False
                 return r'$10^{%i}$'%(np.log10(x))
             return r'$10^{\frac{%i}{2}}$'%np.round(np.log10(x)*2)
 
-        #level_ticks = [cleanup(level) for level in lvls]
-        #level_ticks[-1] = r'$\geq$' + level_ticks[-1]
-        #cbar.set_ticklabels(xtl)
-
+    
     return cbar
 
 logKD2PWM, PWM2logKD = get_transformations() #choose log transformation
@@ -140,9 +133,6 @@ plt.subplots_adjust(
     hspace = 0.4,
     wspace = 0.7)
 
-#f1, x = get_f1(A1, num_muts1, KD1, wt_val, limit=KD_lims)
-#usethis = np.isfinite(KD1) & np.isfinite(f1) & (num_muts1 > 1)
-
 blosum_matrix = pandas.read_csv('blosum62.csv', header=0, index_col=0)
 blosum = np.array([np.sum([blosum_matrix[wt_seq[ii]].loc[seq[ii]] for ii in range(len(seq))]) for seq in AA1])
 
@@ -151,14 +141,11 @@ plot_blosum(KD1, blosum, num_muts1, KD_lims,[blosum.min(),blosum.max()], ax, cur
 ax.set_xlabel(r'$K_d$')
 ax.set_ylabel(r'BLOSUM62 score')
 ax.set_title('1H')
-#f1, x = get_f1(A3, num_muts3, KD3, wt_val, limit=KD_lims)
+
 blosum_matrix = pandas.read_csv('blosum62.csv', header=0, index_col=0)
 blosum = np.array([np.sum([blosum_matrix[wt_seq[ii]].loc[seq[ii]] for ii in range(len(seq))]) for seq in AA3])
 ax = axes[1]
 slope, intercept, _,_,_ = linregress(blosum, KD3)
-#f1 = blosum * slope + intercept
-#f1[f1>KD_lims[1]] = KD_lims[1]
-#f1[f1<KD_lims[0]] = KD_lims[0]
 
 plot_blosum(KD3, blosum, num_muts3, KD_lims, [blosum.min(),blosum.max()], ax, curr_title='3H', make_cbar=True, plot_ytick=True, plot_xtick=True, max_freq=2, min_freq=0, logscale=True, custom_axis=[])
 

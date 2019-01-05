@@ -34,7 +34,7 @@ def write_pymol_commands(deviance, cutoff, offset, in_max, fid):
                     curr = in_max
                 color = plt.cm.OrRd(int(curr*255./in_max))
                 color = (color[0],color[1],color[2])
-                #colormap(nameOfTheColormapYouWant)
+                
                 fid.write('draw_links pk1, pk2, color='+str(color)+', radius=0.2\n')
                 count += 1
     print('domain at %i, num_sigificant at cutoff %f: %i'%(offset, cutoff, count))
@@ -54,7 +54,7 @@ def fuzzy_patch(left, bottom, width, height):
 
 def plot_Z_structure(cutoff, offsets, deviances, in_max, ax):
     fid=open('./pymol_Z_score.pml', 'w')
-    #fid.write('view v1, store\n')
+    
     fid.write('set line_width, 10\n')
 
     for deviance, offset in zip(deviances, offsets):
@@ -83,8 +83,7 @@ def plot_Z_structure(cutoff, offsets, deviances, in_max, ax):
     x00, y0 = p3[0]
     x01, y1 = p3[1]
     height = y1 - y0
-    # [left, bottom, width, height]
-    #position = ([x01+0.01, y0+0.08, 0.01, 0.25])
+    
     position = ([0.01, 0.7, 0.04, 0.2])
 
 
@@ -127,8 +126,7 @@ def plot_Z_structure(cutoff, offsets, deviances, in_max, ax):
     fuzzy_patch(0.49, 0.77, 0.11, 0.1)
     fuzzy_patch(0.41, 0.32, 0.12, 0.1)#N35
     fuzzy_patch(0.50, 0.33, 0.13, 0.1)#G100
-    #fuzzy_patch(0.39, 0.48, 0.11, 0.1)
-
+    
 
 usethis1 = np.where(med_rep['CDR3_muts']==0)[0]
 usethis3 = np.where(med_rep['CDR1_muts']==0)[0]

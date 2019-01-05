@@ -71,7 +71,6 @@ def plot_panel(ax, heatmap, wtseq, optseq, colormap, make_cbar=True, plot_yticks
         position = ([x01+0.005, y0, 0.015, y1-y0])
         cbar = plt.colorbar(cax, cax=plt.gcf().add_axes(position), orientation='vertical', ticks=ticks)
         cbar.ax.set_yticklabels(ticklabels)
-        #cbar.ax.tick_params()
         cbar.set_label(r'$K_d$ [M]',labelpad=-10)
 
     ax.xaxis.set_ticks_position('none')
@@ -102,19 +101,15 @@ def plot_epistasis(f, f1, num_muts, lims, ax, curr_title='', make_cbar=False, pl
 
     lvls = np.logspace(start=0,stop=max_freq,num=(max_freq)*2 + 1, endpoint=True)
     lvls2 = np.logspace(start=0,stop=max_freq,num=max_freq+1, endpoint=True)
-    #H[H<10**-0.25]=10**-0.25
-    #H[H>lvls.max()] = lvls.max()
+    
     H/=(xedges[1]-xedges[0]) * (yedges[1] - yedges[0])
     f_inds = np.searchsorted(np.linspace(lims[0]-1e-10, lims[1]+1e-10, nbins+1), f[usethis])
     f1_inds = np.searchsorted(np.linspace(lims[0]-1e-10, lims[1]+1e-10, nbins+1), f1[usethis])
     color = H[f_inds-1, f1_inds-1]
     density_sort = np.argsort(color)
-    #color[color>10**max_freq] = 10**max_freq
+    
     cax = ax.scatter(f[usethis][density_sort], f1[usethis][density_sort], s=20, c=color[density_sort],cmap='jet',  norm = LogNorm(vmin = 10**min_freq, vmax=10**max_freq))
-    #cax = ax.contourf(xx, yy, H.transpose(), \
-    #    levels=lvls, norm = LogNorm(), \
-    #    cmap = 'gnuplot', zorder= 2, linestyles=None)
-
+    
 
     if logscale:
         in_interval = lambda x: (x >= lims[0]) and (x <= lims[1])
@@ -157,7 +152,6 @@ def plot_epistasis(f, f1, num_muts, lims, ax, curr_title='', make_cbar=False, pl
     ax.set_xlim(left=lims[0]-lim_range/4.5)
     ax.set_ylim(bottom=lims[0]-lim_range/4.5)
     txt = ax.text(0.31,0.02, r'$R^2=$' + str(np.round(Rsquare,2)), transform=ax.transAxes)
-    #txt.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='w', alpha=1)])
     ax.set_aspect(1)
     plt.savefig('deleteme.pdf')
     cbar = []
@@ -182,17 +176,14 @@ def plot_epistasis(f, f1, num_muts, lims, ax, curr_title='', make_cbar=False, pl
                 return r'$10^{%i}$'%(np.log10(x))
             return r'$10^{\frac{%i}{2}}$'%np.round(np.log10(x)*2)
 
-        #level_ticks = [cleanup(level) for level in lvls]
-        #level_ticks[-1] = r'$\geq$' + level_ticks[-1]
-        #cbar.set_ticklabels(xtl)
-
+    
     return cbar
 
 if __name__ == '__main__':
     logKD2PWM, PWM2logKD = get_transformations() #choose log transformation
     med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(logKD2PWM) #get data
-    #separate data into CDR1H, CDR3H
     
+    #separate data into CDR1H, CDR3H
     usethis1 = np.where(med_rep['CDR3_muts']==0)[0]
     usethis3 = np.where(med_rep['CDR1_muts']==0)[0]
 
@@ -246,7 +237,7 @@ if __name__ == '__main__':
     mpl.font_manager.FontProperties(family = 'Helvetica')
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['svg.fonttype'] = 'svgfont'
-    #mpl.rcParams['svg.fonttype'] = 'none'
+    
     # Needed for proper focusing
     plt.ion()
     plt.close('all')
@@ -269,6 +260,7 @@ if __name__ == '__main__':
     labeler = Labeler(xpad=.015,ypad=.007,fontsize=14)
     A_heatmap = make_heatmap(AA, med_rep['KD'], med_rep['CDR1_muts'] + med_rep['CDR3_muts'], wtseq)
     A_heatmap = A_heatmap.rename(columns={k:v for k,v in enumerate(list(range(28, 38))+list(range(100,110)))})
+    
     # Affinity plot, lib1
     ax = plt.subplot(gs[0:12,0:7])
     labeler.label_subplot(ax,'C')
@@ -308,9 +300,7 @@ if __name__ == '__main__':
 
     plot_epistasis(KD1, f1, num_muts1, KD_lims, ax, make_cbar=True, plot_ytick=True, plot_xtick=False, max_freq=3,min_freq=1)
     ax.set_ylabel('PWM [M]', labelpad=2)
-    #txt = ax.text(0.02, 0.77,'1H', transform=ax.transAxes)
     ax.set_title('1H')
-    #txt.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='w', alpha=0.5)])
     labeler = Labeler(xpad=.12,ypad=.007,fontsize=14)
 
     ax = plt.subplot(gs[7:13,30:40])
@@ -339,9 +329,7 @@ if __name__ == '__main__':
 
     ax.set_xlabel(r'$K_d$ [M]')
     ax.set_ylabel('PWM [M]', labelpad=2)
-    #txt = ax.text(0.02, 0.77,'3H', transform=ax.transAxes)
     ax.set_title('3H')
-    #txt.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='w', alpha=0.5)])#labeler.label_subplot(ax,'D')
     ax = plt.subplot(gs[0:6,30:40])
     labeler = Labeler(xpad=.09,ypad=.007,fontsize=14)
     labeler.label_subplot(ax,'D')

@@ -42,8 +42,6 @@ cdict1 = {'red':((0.,1.,1.),
             }
 red_blue = LinearSegmentedColormap('red_blue', cdict1)
 
-
-
 usethis1 = np.where(med_rep['CDR3_muts']==0)[0]
 usethis3 = np.where(med_rep['CDR1_muts']==0)[0]
 A1 = A[usethis1]
@@ -60,16 +58,7 @@ KD3_std = np.array((med_rep['KD_std'].loc[usethis3])) + 1e-10
 plt.ion()
 plt.close('all')
 figsize=(7.3,3.8)
-#rows = 1
-#cols = 2
-#fig, axes = plt.subplots(rows,cols,figsize=figsize)
-#plt.subplots_adjust(
-#    bottom = 0.,
-#    top = 0.99,
-#    left = 0.02,
-#    right = 0.88,
-#    hspace = 0.02,
-#    wspace = 0.02)
+
 fig, axes = plt.subplots(1,2,figsize=figsize)
 plt.subplots_adjust(
     bottom = 0.2,
@@ -79,17 +68,17 @@ plt.subplots_adjust(
     hspace = 0.02,
     wspace = 0.02)
 ax = axes[0]
-#labeler = Labeler(xpad=-0.02,ypad=-0.12,fontsize=17)
+
 CDR1 = plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, 'Beneficial', 28, 'ALL', ax=ax, make_colorbar=False, epistasis='beneficial', y_offset=4)
 CDR3 = plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '', 90, 'ALL', ax=ax, make_colorbar=True, epistasis='beneficial')
 ax.text(-3, 0, '3H')
 ax.text(-3, 4, '1H')
 ax = axes[1]
-#labeler.label_subplot(ax,'A')
+
 CDR1_del = plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, 'Deleterious', 28, 'ALL', ax=ax, make_colorbar=False, epistasis='deleterious', y_offset=4)
 CDR3_del = plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '', 90, 'ALL', ax=ax, make_colorbar=True, epistasis='deleterious')
 pandas.concat([CDR1, CDR3, CDR1_del, CDR3_del]).to_csv('S1_table_sign_epistasis.csv')
-#ax.set_ylim([-1.8,7])
+
 plt.savefig('figure_S13.pdf')
 plt.close()
 
@@ -106,8 +95,7 @@ domain &
 \multicolumn{1}{|p{2cm}|}{\centering \# of viable mutants with sign epistasis (obs/exp)} 
   \\\\ \\hline \n'''
 KD_table.write(header)
-#plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'NOR', fid=KD_table)
-#plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'XOR', fid=KD_table)
+
 KD_table.write('''$^A$''')
 plot_KD_sign_epistasis(A1, KD1, KD1_std, AA1, '1H', 28, 'NAND', fid=KD_table)
 KD_table.write('''$^B$''')
@@ -136,8 +124,7 @@ domain &
   \\\\ \\hline \n'''
 
 KD_table.write(header)
-#plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'NOR', fid=KD_table)
-#plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'XOR', fid=KD_table)
+
 KD_table.write('''$^A$''')
 plot_KD_sign_epistasis(A3, KD3, KD3_std, AA3, '3H', 90, 'NAND', fid=KD_table)
 KD_table.write('''$^B$''')

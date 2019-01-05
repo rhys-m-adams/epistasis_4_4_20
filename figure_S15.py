@@ -17,8 +17,6 @@ from figure_1 import plot_epistasis
 np.random.seed(0)
 wt_seq = 'TFSDYWMNWVGSYYGMDYWG'
 
-
-
 def make_A_matrix(distances, seq2A, seq, ref, max_size):
     out = np.zeros(max_size)
 

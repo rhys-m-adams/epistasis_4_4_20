@@ -424,11 +424,6 @@ mut_colors = {
     5: [0.5, 0.5, 0],
     6: [0, 0.5, 0.5]}
 
-#syn_colors = {  'E':[0,1,0], # Glutamic acid, Green 
-#                'P':[1,1,0], # Proline, Yellow
-#                'L':[1,0,1], # Leucine, Magenta
-#                'N':[1,.5,0],# Asparagine, Orange
-#                'V':[0,1,1]} # Cysteine, Cyan
 
 syn_colors = {'R':[0.5,0.5,1],
                'H':[0,0,1],

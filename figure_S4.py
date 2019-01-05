@@ -39,12 +39,9 @@ for ii, rep_ind in enumerate([None, 0,1,2]):
     f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
     PWM2logKD = lambda x:x
     plot_epistasis(KD*10, f1*10, num_muts, np.array(KD_lims)*10, ax, plot_ytick=True, logscale=False,max_freq=3, min_freq=1, make_cbar=False)
-    #if (ii==3):
+    
     ax.set_xlabel(r'$K_d$, [M]')
     ax.set_xticks([0,2,4,6,8,10])
-    #else:
-    #    ax.set_xlabel('')
-    #    ax.set_xticks([])
     
     ax.set_ylabel(r'PWM [M]')
     ax.set_yticks([0,2,4,6,8,10])
@@ -54,7 +51,6 @@ for ii, rep_ind in enumerate([None, 0,1,2]):
         ax.text(-.55, 0.5, 'Replicate\naverage', ha='right', transform=ax.transAxes)
     else:
         ax.text(-.55, 0.5, 'replicate %i'%ii, ha='right', transform=ax.transAxes)
-    #labeler.label_subplot(ax,chr(ord('A')+ii))
     
     ax = axes[ii, 1]
     med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(transform=lambda x:x, prefix='data_wide_bounds/', KD_lims=[-11, 0], replicate_use=rep_ind)
@@ -64,7 +60,7 @@ for ii, rep_ind in enumerate([None, 0,1,2]):
     f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
     plot_epistasis(KD, f1, num_muts, KD_lims, ax, plot_ytick=True, plot_xtick=True, max_freq=3, min_freq=1, logscale=True, make_cbar=True)
     ax.set_xticks([-11,-7,-3,0])
-    #if (ii==3):
+    
     ax.set_xlabel(r'$K_d$')
     ax.set_xticklabels([r'$10^{%i}$'%power for power in [-11,-7,-3,0]])
  

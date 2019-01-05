@@ -133,7 +133,6 @@ if __name__=='__main__':
     p1 = epi_p1.flatten()[usethis]
     p1[p1<1e-30] = 1e-30
     ax.plot(list(range(p1.shape[0])), np.log10(np.sort(p1)))
-    #ax.axhline(np.log10(np.sort(p1))[-1],c=[0.3,0.3,0.3])
 
     ax.xaxis.set_major_locator(MaxNLocator(4))
     ticks = [-5,-4,-3,-2,-1,0]
@@ -143,7 +142,6 @@ if __name__=='__main__':
     ax.set_xlim([0,p1.shape[0]-1])
     ax.set_xlabel('parameter')
     ax.set_ylabel('posterior')
-    #ax.set_title('1H')
     ax.set_aspect((p1.shape[0]-1)/5.)
 
     ax = axes[3,1]
@@ -152,7 +150,6 @@ if __name__=='__main__':
     p3[p3<1e-30] = 1e-30
 
     ax.plot(list(range(p3.shape[0])), np.log10(np.sort(p3)))
-    #ax.axhline(np.log10(np.sort(p3))[-1],c=[0.3,0.3,0.3])
     ax.xaxis.set_major_locator(MaxNLocator(4))
     ax.set_yticks([])
     ax.set_yticklabels([r'$10^{%i}$'%power for power in ticks])
@@ -161,7 +158,6 @@ if __name__=='__main__':
     ax.set_aspect((p3.shape[0]-1)/5.)
     ax.set_xlabel('parameter')
     ax.set_ylabel('posterior')
-    #ax.set_title('3H')
 
     plt.savefig('figure_S14.pdf')
     plt.close()

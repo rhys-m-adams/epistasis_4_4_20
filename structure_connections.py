@@ -34,7 +34,6 @@ not_backbone = CDR_atoms.loc[~CDR_atoms[2].isin(['C','O','N'])]
 
 ave_atoms = not_backbone.groupby([5]).mean()
 ave_atoms[5] = ave_atoms.index
-#CDR_atoms = CDR_atoms.loc[(~CDR_atoms[2].isin(['CA'])) | (CDR_atoms[3]=='GLY')]
 distances   = get_distances(not_backbone, CDR_list=np.unique(CDR_index))
 distances_a = get_distances(CDR_atoms.loc[CDR_atoms[2].isin(['CA'])], CDR_list=np.unique(CDR_index))
 distances_b = get_distances(CDR_atoms.loc[CDR_atoms[2].isin(['CB'])], CDR_list=np.unique(CDR_index))

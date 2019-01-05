@@ -46,7 +46,7 @@ if __name__ == '__main__':
     KD_use3 = ~np.array(med_rep['KD_exclude'].loc[usethis3])
 
     xK, yK, xE, yE, Z, ZE = get_null(transform = logKD2PWM)
-    #Z = np.hstack((Z,-Z))
+    
     x = np.sort((Z-np.mean(Z))/np.std(Z))
     num_muts = np.array(med_rep[['CDR1_muts','CDR3_muts']]).sum(axis=1).flatten()
     KD = np.array(med_rep['KD']).flatten()
@@ -86,13 +86,10 @@ if __name__ == '__main__':
     ax = plt.subplot(gs[0:4,0:22])
     plot_epistasis_Z(A1[KD_use1], num_muts1[KD_use1], KD1[KD_use1], KD1_std[KD_use1], Z, r'', '1H', KD_lims, ax, make_ytick=True, plot_null=True)
     labeler.label_subplot(ax,'A')
-    #ax.set_xticks([])
-    #ax.set_yscale('symlog',linthreshy=3e-2)
-    #ax = axes[0]
+    
     plot_epistasis_Z(A3[KD_use3], num_muts3[KD_use3], KD3[KD_use3], KD3_std[KD_use3], Z, r'Z', '3H', KD_lims, ax, make_ytick=True)
     ax.set_yscale('symlog',linthreshy=1e-2, linscaley=0.2)
-    #labeler.label_subplot(ax,'B')
-
+    
     ax = plt.subplot(gs[5:11,0:8])
     plot_Z_epistasis_by_pos(Z_by_pos1, 20, 28, 3, ax, curr_title = '1H', opt=opt1, make_ylabel=True)
     labeler.label_subplot(ax,'B')

@@ -38,12 +38,9 @@ for ii, rep_ind in enumerate([None, 0,1,2]):
     f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
     PWM2logKD = lambda x:x
     plot_epistasis(KD*1e6, f1*1e6, num_muts, np.array(KD_lims)*1e6, ax, plot_ytick=True, plot_xtick=True, logscale=False, max_freq=3, min_freq=1, make_cbar=False)
-    #if (ii==3):
+    
     ax.set_xlabel(r'$K_d$, [M]')
     ax.set_xticks([0,2,4,6,8,10])
-    #else:
-    #    ax.set_xlabel('')
-    #    ax.set_xticks([])
         
     ax.set_ylabel(r'PWM [M]')
     ax.set_yticks([0,2,4,6,8,10])
@@ -63,11 +60,8 @@ for ii, rep_ind in enumerate([None, 0,1,2]):
     wt_val = KD[num_muts==0]
     f1, x = get_f1(A, num_muts, KD, wt_val, limit=KD_lims)
     plot_epistasis(KD, f1, num_muts, KD_lims, ax, plot_ytick=True, plot_xtick=True, max_freq=3, min_freq=1, logscale=True, make_cbar=True)
-    #if (ii==3):
     ax.set_xlabel(r'$K_d$, [M]')
-    
     ax.set_ylabel(r'PWM [M]')
-    #labeler.label_subplot(ax,'B')
 
 plt.savefig('figure_S3.pdf')
 plt.close()

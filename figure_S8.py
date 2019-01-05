@@ -19,7 +19,7 @@ import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
 import matplotlib.patheffects as PathEffects
 from scipy.optimize import minimize
-#from scipy.interpolate import interp1d
+
 logKD2PWM, PWM2logKD = get_transformations()
 med_rep, pos, A, AA, A2, KD_lims, exp_lims = get_data(transform=logKD2PWM)
 
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     
     x = np.linspace(-3,3,101)
     ax.plot(x, norm(0,1).pdf(x)*dx*freq.sum(), c='r', label='expected')
-    #ax.text(0.05,0.8,r'$\sigma=%.2f$'%np.std(Z),transform=ax.transAxes)
+    
     ax.text(0.05,0.9,'KS-test: %.2f'%(kstest(Z,'norm')[1]),transform=ax.transAxes )
     ax.set_ylim([0,4])
     ax.set_yticks(list(range(5)))
