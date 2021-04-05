@@ -23,7 +23,7 @@ All figures can be created by running
 ```
 ./make_figs.sh
 ```
-This code performs all analyses except for the simulations used in figure 2F, G, which require considerable cpu time, and were performed beforehand. These results were saved in cdr1h.csv and cdr3h.csv. Runtime on a 2014 Macbook air with 1.3 GHz Intel Core i5 and 8 GB 1600 MHz DDR3 ram takes approximately 6 hours.
+This code performs all analyses except for the simulations used in figure 2F, G, which require considerable cpu time, and were performed beforehand. These results were saved in cdr1h.csv and cdr3h.csv. The code to generate cdr1h.csv and cdr3h.csv is found in submit_jobs.sh, which uses a slurm system to parallelize the job submission. Runtime on a 2014 Macbook air with 1.3 GHz Intel Core i5 and 8 GB 1600 MHz DDR3 ram takes approximately 6 hours.
 
 An example using the monotonic transformation algorithm can be found monotonic_fit_example.ipynb, but new updates will only be done at https://github.com/rhys-m-adams/monotonic_fit
 
